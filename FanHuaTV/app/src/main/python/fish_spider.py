@@ -37,6 +37,7 @@ def _install_requests_shim():
     import urllib.request as _ur
     import urllib.error as _ue
     import urllib.parse as _up
+    import http.cookiejar as _cj
     import ssl as _ssl
     import json as _json
 
@@ -121,14 +122,23 @@ def _install_requests_shim():
         if isinstance(data, str):
             data = data.encode("utf-8")
         timeout = kwargs.pop("timeout", None) or 15
+        jar = kwargs.pop("_cookie_jar", None)
         for junk in ("verify", "allow_redirects", "proxies", "stream",
-                     "cert", "hooks", "auth", "files"):
+                     "cert", "hooks", "auth", "files", "cookies"):
             kwargs.pop(junk, None)
         if method is None:
             method = "POST" if data is not None else "GET"
         req = _ur.Request(url, data=data, headers=headers, method=method)
         try:
-            raw = _ur.urlopen(req, timeout=timeout, context=_ctx)
+            if jar is not None:
+                # 会话请求：HTTPCookieProcessor 自动带上 jar 里的 cookie，
+                # 并把响应的 Set-Cookie 存回 jar（人机验证/登录态靠这个保持）
+                opener = _ur.build_opener(
+                    _ur.HTTPCookieProcessor(jar),
+                    _ur.HTTPSHandler(context=_ctx))
+                raw = opener.open(req, timeout=timeout)
+            else:
+                raw = _ur.urlopen(req, timeout=timeout, context=_ctx)
             return Response(raw, raw.read())
         except _ue.HTTPError as e:
             body = b""
@@ -155,7 +165,9 @@ def _install_requests_shim():
     class Session(object):
         def __init__(self):
             self.headers = {"User-Agent": "Mozilla/5.0"}
-            self.cookies = {}
+            # 真 cookie 会话：验证 POST 后服务器发的 Set-Cookie 存进 jar，
+            # 后续 get/post 自动带上，绕过人机验证不再丢通行证
+            self.cookies = _cj.CookieJar()
 
         def mount(self, prefix, adapter):
             pass  # 替身无连接池，挂载是空操作
@@ -165,6 +177,7 @@ def _install_requests_shim():
             h = dict(self.headers)
             h.update({str(k).title(): v for k, v in (kw.pop("headers", {}) or {}).items()})
             kw["headers"] = h
+            kw["_cookie_jar"] = self.cookies
             return kw
 
         def get(self, url, **kw):
