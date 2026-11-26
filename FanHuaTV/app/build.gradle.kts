@@ -47,9 +47,9 @@ android {
 
     buildTypes {
         release {
-            // R8 先关掉：这版开了之后 jar/py 全部站点分类都不出了（混淆裁/改了反射加载的类），
-            // 功能优先，恢复可用；规则留档，后续逐项验证后再开
-            isMinifyEnabled = false
+            // R8（代码压缩/混淆）。宿主代码因大量按名反射已整体 keep（见 proguard-rules.pro），
+            // 裁的主要是第三方库；资源压缩先不开，减少变量、保证站点解析链路稳定
+            isMinifyEnabled = true
             isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (signingConfigs.getByName("release").storeFile?.exists() == true) {

@@ -1,21 +1,22 @@
 # ===== 手机版 release（R8）保留规则 =====
-# 说明：各三方库（Hilt/Dagger、Room、Media3、OkHttp、Chaquopy）自带 consumer
-# proguard，AGP 会自动合入；这里只补「靠字段名/反射工作」的本地代码。
+# 三方库（Hilt/Dagger、Room、Media3、OkHttp、Chaquopy）自带 consumer proguard，AGP 自动合入。
+# 本文件只负责「靠类名/字段名工作」的本地代码。
 
-# Gson 实体：字段就是协议字段，改名/裁剪会导致解析丢字段。
-# 允许类名混淆、只锁字段成员；@SerializedName 会另由注解机制保住协议名。
+# 宿主代码里有大量按 FQCN 反射的边界：jar 蜘蛛（JarLoader/JarRuntime 把 SpiderApi
+# 交给 jar、再回调）、Python 运行时（Chaquopy）、媒体引擎、Gson 实体等。
+# 上一版就是漏了这些导致 jar/py 站点分类和搜索全挂——现在整包代码不混淆不裁剪，
+# R8 只裁第三方库，功能与不开 R8 时完全一致。
+-keep class com.fanhuatv.** { *; }
+
+# catvod 接口（编译期 api 依赖，运行时要被 jar 按名加载）
+-keep class com.github.catvod.** { *; }
+
+# Gson 实体字段即协议字段；注解与泛型签名必须保留
 -keepclassmembers,allowobfuscation class com.fanhuatv.core.model.** {
     <fields>;
 }
-
-# Gson/Retrofit 反序列化依赖泛型签名与注解
 -keepattributes Signature
 -keepattributes *Annotation*
 
-# 反射入口：SpderApi/JarRuntime 通过接口加载 jar 里的实现，实现类由 jar 自身管理，
-# 但宿主这边的接口与回调类被 jar 按名反射调用，统一不混淆、不裁剪
--keep interface com.fanhuatv.spider.** { *; }
--keep class com.fanhuatv.jar.** { *; }
-
-# Compose 入口/导航：路由字符串在编译期常量里，无需规则；此处仅兜底 Activity
+# 入口兜底（manifest 引用的类本来就不会被裁，这里双保险）
 -keep class com.fanhuatv.MainActivity { *; }
