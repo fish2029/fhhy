@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.FanHuaTV" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/bg_primary</item>
+        <item name="android:navigationBarColor">@color/bg_primary</item>
+        <item name="android:windowBackground">@color/bg_primary</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <color name="bg_primary">#0B0C10</color>
+    <color name="bg_surface">#16181D</color>
+    <color name="bg_card">#1F2229</color>
+    <color name="accent">#E5A23C</color>
+    <color name="accent_deep">#B87A18</color>
+    <color name="text_primary">#F5F5F5</color>
+    <color name="text_secondary">#9AA0AA</color>
+    <color name="danger">#E24B4A</color>
+    <color name="success">#3DBE7A</color>
+</resources>
