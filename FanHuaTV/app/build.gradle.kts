@@ -43,6 +43,12 @@ android {
         }
     }
 
+    // targetSdk=28 是刻意的（私有目录 exec Go 引擎需要），Google Play 的
+    // ExpiredTargetSdkVersion 提示不适用本项目，release 打包不再跑 vital lint
+    lint {
+        checkReleaseBuilds = false
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
