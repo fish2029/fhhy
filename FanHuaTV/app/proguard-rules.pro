@@ -1,22 +1,58 @@
 # ===== 手机版 release（R8）保留规则 =====
-# 三方库（Hilt/Dagger、Room、Media3、OkHttp、Chaquopy）自带 consumer proguard，AGP 自动合入。
-# 本文件只负责「靠类名/字段名工作」的本地代码。
+# 参考仓库里电视版一直在用的那套（能跑，说明这些边界是对的），补上手机版的包名。
 
-# 宿主代码里有大量按 FQCN 反射的边界：jar 蜘蛛（JarLoader/JarRuntime 把 SpiderApi
-# 交给 jar、再回调）、Python 运行时（Chaquopy）、媒体引擎、Gson 实体等。
-# 上一版就是漏了这些导致 jar/py 站点分类和搜索全挂——现在整包代码不混淆不裁剪，
-# R8 只裁第三方库，功能与不开 R8 时完全一致。
+# ---------- 全局属性 ----------
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes InnerClasses, EnclosingMethod
+
+# ---------- 宿主代码：大量按 FQCN 反射，整体不混淆不裁剪 ----------
+# 上一版分类/搜索全挂就是漏了下面两块：jar 蜘蛛按名回调、网络/JSON 运行时按名反射
 -keep class com.fanhuatv.** { *; }
-
-# catvod 接口（编译期 api 依赖，运行时要被 jar 按名加载）
+# catvod 接口在工程内是源码（com/github/catvod/...），会被 R8 改名——jar 里加载的
+# Spider 实现类找的就是这个包名，必须原样保留
 -keep class com.github.catvod.** { *; }
 
-# Gson 实体字段即协议字段；注解与泛型签名必须保留
+# ---------- Gson：靠字段名/@SerializedName 反序列化配置与源站数据 ----------
+-keep class com.google.gson.** { *; }
+-keepclassmembers,allowobfuscation class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
 -keepclassmembers,allowobfuscation class com.fanhuatv.core.model.** {
     <fields>;
 }
--keepattributes Signature
--keepattributes *Annotation*
+-keep class * extends com.google.gson.TypeAdapter
+-keep class * implements com.google.gson.TypeAdapterFactory
+-keep class * implements com.google.gson.JsonSerializer
+-keep class * implements com.google.gson.JsonDeserializer
+-keep,allowobfuscation,allowoptimization class * extends com.google.gson.reflect.TypeToken
 
-# 入口兜底（manifest 引用的类本来就不会被裁，这里双保险）
+# ---------- 网络层：OkHttp/Okio/Retrofit 走反射与拦截器注册 ----------
+-keep class okhttp3.** { *; }
+-keep class okio.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**
+
+# ---------- Python 运行时（Chaquopy 按名反射进 Java 侧） ----------
+-keep public class com.chaquo.python.** { *; }
+-dontwarn com.chaquo.python.**
+
+# ---------- 安卓标准反射面 ----------
+-keep class * implements android.os.Parcelable {
+    public static final android.os.Parcelable$Creator *;
+}
+-keepclasseswithmembernames class * { native <methods>; }
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    !static !transient <fields>;
+    !private <fields>;
+    !private <methods>;
+}
+
+# ---------- 兜底 ----------
 -keep class com.fanhuatv.MainActivity { *; }
