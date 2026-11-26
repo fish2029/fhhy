@@ -20,6 +20,10 @@ jobs:
         working-directory: FanHuaTV
     steps:
       - uses: actions/checkout@v4
+      - name: Inject release keystore
+        # 与电视版共用同一把钥匙（仓库内 .github/workflows/TVBoxOSC.jks），
+        # 拷到 FanHuaTV 根目录后 app/build.gradle.kts 的 release 签名配置才会生效
+        run: cp -f "$GITHUB_WORKSPACE/.github/workflows/TVBoxOSC.jks" "$GITHUB_WORKSPACE/FanHuaTV/TVBoxOSC.jks"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

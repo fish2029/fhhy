@@ -36,10 +36,22 @@ android {
         }
     }
 
+    // 签名：与电视版共用同一把钥匙（仓库内 .github/workflows/TVBoxOSC.jks，密码 TVBoxOSC），
+    // CI 打包前把它拷到本工程根目录即可出可安装的 release 包；本地没这个文件时保持原样不签
+    signingConfigs.maybeCreate("release").apply {
+        storeFile = rootProject.file("TVBoxOSC.jks")
+        storePassword = "TVBoxOSC"
+        keyAlias = "TVBoxOSC"
+        keyPassword = "TVBoxOSC"
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (signingConfigs.getByName("release").storeFile?.exists() == true) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
