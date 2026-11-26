@@ -47,6 +47,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -403,6 +404,11 @@ fun PlayerScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
+            // 视频画面尺寸：探测过且宽为 0 说明是纯音频（音乐封面大图只在纯音频铺满）
+            var videoW by remember { mutableStateOf(0) }
+            var videoH by remember { mutableStateOf(0) }
+            var videoProbed by remember { mutableStateOf(false) }
+
             // 手势层（未锁定时生效）：左右竖滑亮度/音量，中间竖滑切换剧集，长按 2 倍速
             if (!locked) {
                 Box(
@@ -481,52 +487,59 @@ fun PlayerScreen(
                 }
             }
 
-            // 音乐 OSD：播放画面内、进度条上方——左边歌手海报、右边当前句歌词（音乐源才有）
-            if (posterUrl.isNotBlank() || lyricLines.isNotEmpty()) {
-                Row(
+            // 音乐大图：纯音频（探测不到视频画面）时封面铺满整个播放画面，像 MV 一样
+            if (posterUrl.isNotBlank() && videoProbed && videoW <= 0) {
+                AsyncImage(
+                    model = posterUrl,
+                    contentDescription = null,
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            // 音乐歌词：当字幕叠在画面上（纯音频时叠在封面大图上），进度条上方居中
+            if (lyricLines.isNotEmpty()) {
+                val curIdx = if (lyricIdx < 0) 0 else lyricIdx
+                Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .padding(start = 14.dp, end = 14.dp, bottom = 132.dp),
-                    verticalAlignment = Alignment.Bottom
+                        .padding(start = 24.dp, end = 24.dp, bottom = 132.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (posterUrl.isNotBlank()) {
-                        AsyncImage(
-                            model = posterUrl,
-                            contentDescription = null,
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                            modifier = Modifier
-                                .width(88.dp)
-                                .height(88.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .border(1.dp, Color(0xFFC9B8FF), RoundedCornerShape(10.dp))
-                        )
-                        Spacer(Modifier.width(12.dp))
-                    }
-                    if (lyricLines.isNotEmpty()) {
-                        val curIdx = if (lyricIdx < 0) 0 else lyricIdx
-                        Column {
-                            Text(
-                                lyricLines.getOrNull(curIdx)?.text ?: "",
-                                color = Color.White,
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.Bold,
-                                lineHeight = 24.sp,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
+                    Text(
+                        lyricLines.getOrNull(curIdx)?.text ?: "",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 25.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        style = TextStyle(
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.8f),
+                                blurRadius = 10f
                             )
-                            val nextLine = lyricLines.getOrNull(curIdx + 1)
-                            if (nextLine != null) {
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    nextLine.text,
-                                    color = Color.White.copy(alpha = 0.7f),
-                                    fontSize = 13.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                        )
+                    )
+                    val nextLine = lyricLines.getOrNull(curIdx + 1)
+                    if (nextLine != null) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            nextLine.text,
+                            color = Color.White.copy(alpha = 0.75f),
+                            fontSize = 14.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                            style = TextStyle(
+                                shadow = Shadow(
+                                    color = Color.Black.copy(alpha = 0.8f),
+                                    blurRadius = 8f
                                 )
-                            }
-                        }
+                            )
+                        )
                     }
                 }
             }
@@ -539,8 +552,6 @@ fun PlayerScreen(
                 var playingNow by remember { mutableStateOf(true) }
                 var epIndex by remember { mutableStateOf(-1) }
                 var scrubMs by remember { mutableStateOf<Long?>(null) }
-                var videoW by remember { mutableStateOf(0) }
-                var videoH by remember { mutableStateOf(0) }
                 LaunchedEffect(currentUrl) {
                     while (isActive) {
                         vm.engine.player?.let { p ->
@@ -550,6 +561,7 @@ fun PlayerScreen(
                             val vs = p.videoSize
                             videoW = vs.width
                             videoH = vs.height
+                            videoProbed = true
                         }
                         LivePlayBus.pendingItem?.episodes?.let { eps ->
                             epIndex = eps.indexOfFirst { it.playableUrl == LivePlayBus.pendingUrl }
