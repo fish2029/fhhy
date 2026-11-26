@@ -47,10 +47,10 @@ android {
 
     buildTypes {
         release {
-            // 开 R8：代码混淆压缩 + 资源压缩，减小包体（与电视版一致）。
-            // 风险点是反射加载：Gson 实体、Chaquopy/Python、媒体解码等已在 proguard-rules.pro 里放行
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // R8 先关掉：这版开了之后 jar/py 全部站点分类都不出了（混淆裁/改了反射加载的类），
+            // 功能优先，恢复可用；规则留档，后续逐项验证后再开
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (signingConfigs.getByName("release").storeFile?.exists() == true) {
                 signingConfig = signingConfigs.getByName("release")
