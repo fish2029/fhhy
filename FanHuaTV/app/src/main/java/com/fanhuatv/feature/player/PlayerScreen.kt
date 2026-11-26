@@ -409,6 +409,22 @@ fun PlayerScreen(
             var videoH by remember { mutableStateOf(0) }
             var videoProbed by remember { mutableStateOf(false) }
 
+            // 播放状态：进度/时长/在播/集索引/拖动暂存（控制条隐藏时也照常轮询）
+            var posMs by remember { mutableStateOf(0L) }
+            var durMs by remember { mutableStateOf(0L) }
+            var playingNow by remember { mutableStateOf(true) }
+            var epIndex by remember { mutableStateOf(-1) }
+            var scrubMs by remember { mutableStateOf<Long?>(null) }
+
+            // 控制条显隐：点画面切换；播放中 4 秒无操作自动隐藏，暂停时常驻
+            var controlsVisible by remember { mutableStateOf(true) }
+            LaunchedEffect(controlsVisible, scrubMs) {
+                if (!controlsVisible) return@LaunchedEffect
+                delay(4000)
+                // 暂停时不收；正在拖进度条时不收（scrubMs 变化会重启计时）
+                if (vm.engine.player?.isPlaying == true && scrubMs == null) controlsVisible = false
+            }
+
             // 手势层（未锁定时生效）：左右竖滑亮度/音量，中间竖滑切换剧集，长按 2 倍速
             if (!locked) {
                 Box(
@@ -445,6 +461,7 @@ fun PlayerScreen(
                         }
                         .pointerInput(Unit) {
                             detectTapGestures(
+                                onTap = { controlsVisible = !controlsVisible },
                                 onLongPress = {
                                     currentSpeed = settings.speed
                                     vm.engine.setSpeed(2f)
@@ -545,13 +562,8 @@ fun PlayerScreen(
             }
 
             // ── 底部控制区：快进快退进度条 + 上一集/播放/下一集 + OSD 功能条 ──
+            // 播放状态轮询：进度、时长、是否在播、当前集索引（控制条收起也照常跑）
             if (!locked) {
-                // 播放状态轮询：进度、时长、是否在播、当前集索引
-                var posMs by remember { mutableStateOf(0L) }
-                var durMs by remember { mutableStateOf(0L) }
-                var playingNow by remember { mutableStateOf(true) }
-                var epIndex by remember { mutableStateOf(-1) }
-                var scrubMs by remember { mutableStateOf<Long?>(null) }
                 LaunchedEffect(currentUrl) {
                     while (isActive) {
                         vm.engine.player?.let { p ->
@@ -569,7 +581,10 @@ fun PlayerScreen(
                         delay(500)
                     }
                 }
+            }
 
+            // 控制面板：点画面切换显隐，播放中 4 秒无操作自动收起
+            if (!locked && controlsVisible) {
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
