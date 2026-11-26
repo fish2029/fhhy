@@ -887,8 +887,10 @@ class MainRepository @Inject constructor(
 
     suspend fun resolvePlayUrl(item: VodItem, episodeUrl: String, playFlag: String = ""): Resource<String> {
         val url = episodeUrl.ifBlank { item.playUrl }
-        // 弹幕地址随播放解析刷新：先清掉上一部片留下的，jar 源解析成功后再补
+        // 弹幕/海报/歌词地址随播放解析刷新：先清掉上一部片留下的，jar 源解析成功后再补
         com.fanhuatv.player.LivePlayBus.pendingDanmaku = ""
+        com.fanhuatv.player.LivePlayBus.pendingArtwork = ""
+        com.fanhuatv.player.LivePlayBus.pendingLyric = ""
         // 入口全量诊断：source/siteKey/api/id/集数地址/线路名一次打全，
         // 无论后面走哪个分支，logcat 都能还原当时到底拿到的什么数据
         android.util.Log.i("FanHuaTV", "resolvePlayUrl 入口：source=${item.source} siteKey=${item.siteKey} api=${matchJarSite(item)?.api ?: "-"} id=${item.id.take(60)} url=${url.take(80)} flag=${playFlag.ifBlank { "(空)" }} playUrl=${item.playUrl.take(200)}")
@@ -926,9 +928,15 @@ class MainRepository @Inject constructor(
                 if (id.isBlank()) return false
                 val parsed = jarRuntime.playerContent(jarSite, flagFirst, id, flagList)
                     ?: return false
-                // jar 返回了弹幕地址：记到播放总线上，播放器页起播后拉取渲染
+                // jar 返回了弹幕/歌手海报/歌词：记到播放总线上，播放器页起播后拉取渲染
                 parsed.danmaku.takeIf { it.isNotBlank() }?.let {
                     com.fanhuatv.player.LivePlayBus.pendingDanmaku = it
+                }
+                parsed.artwork.takeIf { it.isNotBlank() }?.let {
+                    com.fanhuatv.player.LivePlayBus.pendingArtwork = it
+                }
+                parsed.lyric.takeIf { it.isNotBlank() }?.let {
+                    com.fanhuatv.player.LivePlayBus.pendingLyric = it
                 }
                 val rawPlay = parsed.url.takeIf { it.isNotBlank() } ?: return false
                 lastRawUrl = rawPlay

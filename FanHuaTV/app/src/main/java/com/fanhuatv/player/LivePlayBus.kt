@@ -14,6 +14,12 @@ object LivePlayBus {
     /** 本次播放的弹幕地址（jar 源的 danmaku 字段，本地代理可取）；无弹幕为空串 */
     var pendingDanmaku: String = ""
 
+    /** 歌手海报（jar 源的 artwork 字段，音乐/MV 类才有）；无则空串 */
+    var pendingArtwork: String = ""
+
+    /** 歌词（jar 源的 lyric/lyrics/subs 条目，可能是 LRC 地址或原文）；无则空串 */
+    var pendingLyric: String = ""
+
     /** 从搜索/脚本结果进入详情时暂存影片（详情页在 config.homeItems 里找不到时用） */
     var pendingDetail: VodItem? = null
     private var recent: LinkedHashMap<String, VodItem> = LinkedHashMap()
@@ -34,6 +40,9 @@ object LivePlayBus {
         this.pendingTitle = title
         this.pendingItem = item
         this.pendingSeek = seekTo
+        // 上一部片留下的海报/歌词清掉，等本次解析结果覆盖
+        this.pendingArtwork = ""
+        this.pendingLyric = ""
     }
 
     fun consume(): Triple<String, String, VodItem?> {

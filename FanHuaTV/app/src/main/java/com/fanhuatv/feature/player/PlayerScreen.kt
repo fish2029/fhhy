@@ -115,6 +115,47 @@ fun PlayerScreen(
     var danmakuLane by remember { mutableStateOf(0) }
     var lastDanmakuPos by remember { mutableStateOf(0L) }
 
+    // 歌手海报 / 歌词：来自 jar 播放结果的 artwork 与 lyric/lyrics/subs 字段（音乐/MV 类源才有）。
+    // 与弹幕不同，这两个是「有就显示、没有就不占位」，所以不做默认值伪造
+    var artwork by remember { mutableStateOf(LivePlayBus.pendingArtwork) }
+    var lyricRaw by remember { mutableStateOf(LivePlayBus.pendingLyric) }
+    LaunchedEffect(currentUrl) {
+        artwork = LivePlayBus.pendingArtwork
+        lyricRaw = LivePlayBus.pendingLyric
+    }
+    // 与电视版一致：jar 只给歌词没给海报时，拿影片封面当歌手海报
+    val posterUrl = artwork.ifBlank {
+        if (lyricRaw.isBlank()) "" else item?.coverUrl.orEmpty()
+    }
+    var lyricLines by remember { mutableStateOf<List<LrcLine>>(emptyList()) }
+    var lyricIdx by remember { mutableStateOf(-1) }
+    LaunchedEffect(lyricRaw) {
+        lyricLines = emptyList()
+        lyricIdx = -1
+        if (lyricRaw.isBlank()) return@LaunchedEffect
+        // 地址形态两种：LRC 直链（下载原文）或直接就是 LRC 文本
+        val text = if (lyricRaw.startsWith("http")) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                runCatching {
+                    val conn = java.net.URL(lyricRaw).openConnection()
+                    conn.connectTimeout = 8000
+                    conn.readTimeout = 8000
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0")
+                    conn.getInputStream().use { it.readBytes().toString(Charsets.UTF_8) }
+                }.getOrDefault("")
+            }
+        } else lyricRaw
+        if (text.isNotBlank()) lyricLines = parseLrc(text)
+    }
+    // 当前句跟随播放进度走；没有时间轴的歌词（lyricLines 为空）就不显示
+    LaunchedEffect(lyricLines, currentUrl) {
+        while (isActive && lyricLines.isNotEmpty()) {
+            delay(300)
+            val pos = runCatching { vm.engine.player?.currentPosition ?: 0L }.getOrDefault(0L)
+            lyricIdx = lyricLines.indexOfLast { it.time <= pos }.coerceAtLeast(0)
+        }
+    }
+
     // 拉取弹幕：换播放地址时重新加载；jar 没给地址或服务没数据就保持空列表
     LaunchedEffect(danmakuUrl, danmakuOn) {
         danmakuList = emptyList()
@@ -428,6 +469,55 @@ fun PlayerScreen(
                         DanmakuBulletView(text = b.text, lane = b.lane) {
                             danmakuBullets = danmakuBullets.filterNot { it.id == b.id }
                         }
+                    }
+                }
+            }
+
+            // 歌手海报：音乐/MV 源在画面上居中显示（圆角+淡描边），
+            // 底部给控制条和歌词留位；普通影视没有 artwork 就不显示，不遮画面
+            if (posterUrl.isNotBlank()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(bottom = 150.dp)
+                        .size(150.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .border(1.5.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(18.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AsyncImage(
+                        model = posterUrl,
+                        contentDescription = null,
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+
+            // 歌词：贴在控制条上方，当前句白色加粗、上下句半透明；锁定时不显示
+            if (!locked && lyricLines.isNotEmpty() && lyricIdx in lyricLines.indices) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 92.dp)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val from = (lyricIdx - 1).coerceAtLeast(0)
+                    val to = (lyricIdx + 1).coerceAtMost(lyricLines.size - 1)
+                    (from..to).forEach { i ->
+                        Text(
+                            lyricLines[i].text,
+                            color = if (i == lyricIdx) Color.White else Color.White.copy(alpha = 0.55f),
+                            fontSize = if (i == lyricIdx) 16.sp else 13.sp,
+                            fontWeight = if (i == lyricIdx) FontWeight.Bold else FontWeight.Normal,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
@@ -1102,6 +1192,32 @@ private fun parseDanmakuXml(xml: String): List<Pair<Long, String>> {
             }
             .sortedBy { it.first }
             .toList()
+    }.getOrDefault(emptyList())
+}
+
+/** 单句歌词：time 为出现时间（毫秒） */
+private data class LrcLine(val time: Long, val text: String)
+
+/**
+ * 解析 LRC 文本：[mm:ss.xx] 时间标签开头的一句；同一句带多个时间只留最早那条，
+ * 按时间排序去重。没有时间轴的纯文本歌词无法跟播，直接返回空列表（不显示）。
+ */
+private fun parseLrc(text: String): List<LrcLine> {
+    return runCatching {
+        val lines = mutableListOf<LrcLine>()
+        Regex("\\[(\\d{1,3}):(\\d{1,2})(?:[.:](\\d{1,3}))?]")
+            .findAll(text)
+            .forEach { m ->
+                val min = m.groupValues[1].toLong()
+                val sec = m.groupValues[2].toLong()
+                val frac = m.groupValues[3].ifBlank { "0" }.padEnd(3, '0').take(3).toLong()
+                val time = (min * 60 + sec) * 1000 + frac
+                val rest = text.substring(m.range.last + 1)
+                val end = rest.indexOf('\n').let { if (it < 0) rest.length else it }
+                val line = rest.substring(0, end).trim().trimEnd('\r')
+                if (line.isNotEmpty()) lines.add(LrcLine(time, line))
+            }
+        lines.sortedBy { it.time }.distinctBy { it.time to it.text }
     }.getOrDefault(emptyList())
 }
 

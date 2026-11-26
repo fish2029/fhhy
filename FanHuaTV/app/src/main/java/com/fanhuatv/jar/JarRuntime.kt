@@ -27,7 +27,11 @@ data class JarPlayResult(
     val url: String,
     val headers: Map<String, String>?,
     val needParse: Boolean,
-    val danmaku: String = ""
+    val danmaku: String = "",
+    /** 歌手海报（jar 的 artwork 字段，音乐/MV 类源才有） */
+    val artwork: String = "",
+    /** 歌词：jar 的 lyric/lyrics/subs 里名为 lyric/lrc/歌词 的条目地址（或 LRC 原文） */
+    val lyric: String = ""
 )
 
 /**
@@ -624,11 +628,24 @@ class JarRuntime @Inject constructor(
                 is String -> parseHeaderJson(h)
                 else -> null
             }
+            // 歌手海报：标准键 artwork；音乐类蜘蛛常用它带出封面图
+            val artwork = jsonStr(obj, "artwork", "artist_pic", "singer_pic")
+            // 歌词：三种给法都接——lyric 单串、lyrics 数组（取第一条）、
+            // subs 数组里名字含 lyric/lrc/歌词 的条目（与电视版判定一致）
+            var lyric = obj.optString("lyric").takeIf { it.isNotBlank() }.orEmpty()
+            if (lyric.isBlank()) {
+                lyric = firstItemUrl(obj.optJSONArray("lyrics"))
+            }
+            if (lyric.isBlank()) {
+                lyric = lyricFromSubs(obj.optJSONArray("subs")) ?: lyric
+            }
             JarPlayResult(
                 url = url,
                 headers = headers,
                 needParse = parse == 1 || jx == 1 || !isDirectVideoUrl(url),
-                danmaku = obj.optString("danmaku")
+                danmaku = obj.optString("danmaku"),
+                artwork = artwork,
+                lyric = lyric
             )
         }.getOrNull()
     }
@@ -666,6 +683,28 @@ class JarRuntime @Inject constructor(
             }
             else -> return null
         }
+    }
+
+    /** lyrics[] 取第一条的地址：对象形态 {url/name} 或纯字符串都兼容 */
+    private fun firstItemUrl(array: JSONArray?): String {
+        if (array == null || array.length() == 0) return ""
+        val first = array.optJSONObject(0) ?: return array.optString(0)
+        return jsonStr(first, "url", "v", "address")
+    }
+
+    /** subs[] 里名字含 lyric/lrc/歌词 的条目是歌词，其余是字幕（这里只取歌词） */
+    private fun lyricFromSubs(array: JSONArray?): String? {
+        if (array == null) return null
+        for (i in 0 until array.length()) {
+            val obj = array.optJSONObject(i) ?: continue
+            val name = obj.optString("name")
+            val lower = name.lowercase()
+            if (lower.contains("lyric") || lower.contains("lrc") || name.contains("歌词")) {
+                val url = jsonStr(obj, "url", "v", "address")
+                if (url.isNotBlank()) return url
+            }
+        }
+        return null
     }
 
     /** 解析 spider 返回的 header 字段（JSON 字符串或 JSON 对象）为请求头 Map */
