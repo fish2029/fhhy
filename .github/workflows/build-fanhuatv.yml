@@ -45,5 +45,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: fanhuatv-${{ github.event.inputs.variant || 'push' }}
-          path: app/build/outputs/apk/**/*.apk
+          # upload-artifact 的 path 相对仓库根目录解析，不受 defaults.run.working-directory 影响；
+          # 构建发生在 FanHuaTV 子工程，产物在其 app/build/outputs/apk 下
+          path: FanHuaTV/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
