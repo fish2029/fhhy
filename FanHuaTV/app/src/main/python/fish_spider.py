@@ -1137,10 +1137,22 @@ def fish_play(source, param_json):
                 res_header = json.dumps(hdr, ensure_ascii=False)
             elif isinstance(hdr, str):
                 res_header = hdr
-        # parse/jx/header 透传给 Kotlin 端：parse/jx=1 表示需嗅探（App 端拦截），
+        # 歌词/歌手海报透传：音乐类脚本 playerContent 可能返回 artwork/lyric 字段，
+        # 原样带给 Kotlin 端写入播放总线，播放页起播后拉取渲染
+        res_artwork = ""
+        res_lyric = ""
+        if isinstance(result, dict):
+            aw = result.get("artwork") or result.get("cover") or ""
+            if isinstance(aw, str):
+                res_artwork = aw
+            ly = result.get("lyric") or result.get("lyrics") or ""
+            if isinstance(ly, str):
+                res_lyric = ly
+        # parse/jx/header/artwork/lyric 透传给 Kotlin 端：parse/jx=1 表示需嗅探（App 端拦截），
         # header 是该地址的请求头要求（播放时应用）
         return json.dumps({"result": play_url, "parse": res_parse, "jx": res_jx,
                            "header": res_header,
+                           "artwork": res_artwork, "lyric": res_lyric,
                            "error": None if play_url else "no_url"},
                           ensure_ascii=False)
     except Exception as e:
