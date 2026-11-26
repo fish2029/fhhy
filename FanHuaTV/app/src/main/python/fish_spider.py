@@ -210,6 +210,379 @@ def _install_requests_shim():
 _install_requests_shim()
 
 
+def _install_pyquery_shim():
+    """pyquery 替身：道长系脚本（爱听/酷我等）开头就 `from pyquery import PyQuery`，
+    手机版 Chaquopy 没装这个包，import 直接 ModuleNotFoundError，整个脚本 exec
+    失败、分类全空。电视版 pyramid 走 pip install 没这问题，手机版照 requests
+    替身的路子，用标准库 html.parser 实现脚本实际用到的子集：
+    pq(html) / 选择器调用 / eq / clone / remove / items / outerHtml / text / html / attr。
+    """
+    try:
+        import pyquery  # noqa: F401
+        return  # 真包在，不装替身
+    except Exception:
+        pass
+    if "pyquery" in sys.modules:
+        return
+
+    import html.parser as _hp
+    import html as _htmlmod
+
+    _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input",
+             "link", "meta", "param", "source", "track", "wbr"}
+
+    class _Node(object):
+        __slots__ = ("tag", "attrs", "children", "parent")
+
+        def __init__(self, tag, attrs=None, parent=None):
+            self.tag = tag.lower()
+            self.attrs = attrs or {}
+            self.children = []          # _Node 或 str（文本）
+            self.parent = parent
+
+        def _iter(self):
+            for ch in self.children:
+                if isinstance(ch, _Node):
+                    yield ch
+                    for d in ch._iter():
+                        yield d
+
+        def _texts(self):
+            for ch in self.children:
+                if isinstance(ch, str):
+                    yield ch
+                else:
+                    for t in ch._texts():
+                        yield t
+
+        def _inner(self):
+            out = []
+            for ch in self.children:
+                if isinstance(ch, str):
+                    out.append(_htmlmod.escape(ch, quote=False))
+                else:
+                    out.append(_outer(ch))
+            return "".join(out)
+
+        def _copy(self, parent=None):
+            n = _Node(self.tag, dict(self.attrs), parent)
+            for ch in self.children:
+                n.children.append(ch if isinstance(ch, str) else ch._copy(n))
+            return n
+
+    def _outer(n):
+        a = "".join(' %s="%s"' % (k, _htmlmod.escape(str(v), quote=True))
+                    for k, v in (n.attrs or {}).items())
+        if n.tag in _VOID and not n.children:
+            return "<%s%s/>" % (n.tag, a)
+        return "<%s%s>%s</%s>" % (n.tag, a, n._inner(), n.tag)
+
+    class _Builder(_hp.HTMLParser):
+        def __init__(self):
+            _hp.HTMLParser.__init__(self, convert_charrefs=True)
+            self.root = _Node("document")
+            self.stack = [self.root]
+
+        @staticmethod
+        def _attrs(attrs):
+            return {k: (v if v is not None else "") for k, v in attrs}
+
+        def handle_starttag(self, tag, attrs):
+            node = _Node(tag, self._attrs(attrs), self.stack[-1])
+            self.stack[-1].children.append(node)
+            if tag.lower() not in _VOID:
+                self.stack.append(node)
+
+        def handle_startendtag(self, tag, attrs):
+            node = _Node(tag, self._attrs(attrs), self.stack[-1])
+            self.stack[-1].children.append(node)
+
+        def handle_endtag(self, tag):
+            t = tag.lower()
+            for i in range(len(self.stack) - 1, 0, -1):
+                if self.stack[i].tag == t:
+                    del self.stack[i:]
+                    return
+
+        def handle_data(self, data):
+            if data:
+                self.stack[-1].children.append(data)
+
+    # ---- 选择器：tag / .cls / #id / [attr] / [attr*=v] / :eq(n) 等 ----
+    def _parse_simple(s):
+        tag, classes, eid, attrs, pseudo = None, [], None, [], None
+        i = 0
+        while i < len(s):
+            c = s[i]
+            if c == "*":
+                i += 1
+            elif c == ".":
+                m = re.match(r"\.([\w\-]+)", s[i:])
+                if not m:
+                    return None
+                classes.append(m.group(1))
+                i += m.end()
+            elif c == "#":
+                m = re.match(r"#([\w\-]+)", s[i:])
+                if not m:
+                    return None
+                eid = m.group(1)
+                i += m.end()
+            elif c == "[":
+                j = s.find("]", i)
+                if j < 0:
+                    return None
+                attrs.append(s[i + 1:j].strip())
+                i = j + 1
+            elif c == ":":
+                m = re.match(r":(\w+)(?:\((\d+)\))?", s[i:])
+                if not m:
+                    return None
+                pseudo = (m.group(1).lower(), m.group(2))
+                i += m.end()
+            else:
+                m = re.match(r"[a-zA-Z][\w\-]*", s[i:])
+                if not m:
+                    return None
+                tag = m.group(0).lower()
+                i += m.end()
+        return tag, classes, eid, attrs, pseudo
+
+    def _match_attr(node, cond):
+        m = re.match(r"([\w\-]+)\s*(\*|\^|\$)?=\s*(.*)$", cond)
+        if m:
+            name, op, val = m.group(1), m.group(2), m.group(3).strip().strip("\"'")
+            have = str(node.attrs.get(name, "") or "")
+            if op == "*":
+                return val in have
+            if op == "^":
+                return have.startswith(val)
+            if op == "$":
+                return have.endswith(val)
+            return have == val
+        return node.attrs.get(cond.strip()) is not None
+
+    def _match_simple(node, simple):
+        """返回 (是否匹配, 伪类)；伪类单独返回，集合层面统一处理。"""
+        parsed = _parse_simple(simple)
+        if parsed is None:
+            return False, None
+        tag, classes, eid, attrs, pseudo = parsed
+        if tag and tag != "*" and node.tag != tag:
+            return False, None
+        if classes:
+            cl = (node.attrs.get("class") or "").split()
+            if not all(c in cl for c in classes):
+                return False, None
+        if eid is not None and node.attrs.get("id") != eid:
+            return False, None
+        for a in attrs:
+            if not _match_attr(node, a):
+                return False, None
+        return True, pseudo
+
+    def _select(root, selector):
+        """从 root 的后代里选，返回 [_Node]；支持逗号分组、空格后代链、eq/first/last/gt/lt。"""
+        out, seen = [], set()
+        for part in str(selector).split(","):
+            part = part.strip()
+            if not part:
+                continue
+            chain = part.split()
+            cand = []
+
+            def walk(n, ci):
+                ok, p = _match_simple(n, chain[ci])
+                if not ok:
+                    return
+                if ci + 1 < len(chain):
+                    for d in n._iter():
+                        walk(d, ci + 1)
+                else:
+                    cand.append((n, p))
+
+            # 真 pyquery 的上下文选择包含元素自身（lxml cssselect 语义）
+            for n in [root] + list(root._iter()):
+                walk(n, 0)
+            pseudo = None
+            for _, p in cand:
+                if p:
+                    pseudo = p
+            if pseudo:
+                name, arg = pseudo
+                try:
+                    idx = int(arg) if arg else 0
+                except ValueError:
+                    idx = 0
+                if name == "first":
+                    cand = cand[:1]
+                elif name == "last":
+                    cand = cand[-1:]
+                elif name == "eq" or name == "nth-child":
+                    cand = cand[idx:idx + 1]
+                elif name == "gt":
+                    cand = cand[idx + 1:]
+                elif name == "lt":
+                    cand = cand[:idx]
+            for n, _ in cand:
+                if id(n) not in seen:
+                    seen.add(id(n))
+                    out.append(n)
+        return out
+
+    class PyQuery(object):
+        def __init__(self, nodes=None):
+            if isinstance(nodes, str):
+                b = _Builder()
+                try:
+                    b.feed(nodes)
+                    b.close()
+                except Exception:
+                    pass
+                self._nodes = [n for n in b.root.children if isinstance(n, _Node)]
+            else:
+                self._nodes = list(nodes or [])
+
+        def __call__(self, selector=None):
+            if not selector:
+                return PyQuery(self._nodes)
+            out, seen = [], set()
+            for n in self._nodes:
+                for m in _select(n, selector):
+                    if id(m) not in seen:
+                        seen.add(id(m))
+                        out.append(m)
+            return PyQuery(out)
+
+        def __len__(self):
+            return len(self._nodes)
+
+        def __bool__(self):
+            return len(self._nodes) > 0
+
+        def __iter__(self):
+            return iter(PyQuery([n]) for n in self._nodes)
+
+        def eq(self, i):
+            if -len(self._nodes) <= i < len(self._nodes):
+                return PyQuery([self._nodes[i]])
+            return PyQuery([])
+
+        def clone(self):
+            return PyQuery([n._copy(None) for n in self._nodes])
+
+        def remove(self, selector=None):
+            if selector:
+                targets = [m for n in self._nodes for m in _select(n, selector)]
+            else:
+                targets = self._nodes
+            for n in targets:
+                p = n.parent
+                if p is not None and n in p.children:
+                    p.children.remove(n)
+                    n.parent = None
+            return self
+
+        def items(self):
+            return iter(PyQuery([n]) for n in self._nodes)
+
+        def text(self):
+            parts = []
+            for n in self._nodes:
+                parts.extend(t for t in n._texts() if t)
+            return " ".join("".join(parts).split())
+
+        def html(self):
+            return self._nodes[0]._inner() if self._nodes else ""
+
+        def outerHtml(self):
+            return _outer(self._nodes[0]) if self._nodes else ""
+
+        def attr(self, name, value=None):
+            if not self._nodes:
+                return None
+            return self._nodes[0].attrs.get(name)
+
+        def find(self, selector):
+            return self(selector)
+
+        def children(self, selector=None):
+            out, seen = [], set()
+            for n in self._nodes:
+                for ch in n.children:
+                    if isinstance(ch, _Node) and id(ch) not in seen:
+                        seen.add(id(ch))
+                        out.append(ch)
+            pq = PyQuery(out)
+            return pq(selector) if selector else pq
+
+        def parent(self):
+            out, seen = [], set()
+            for n in self._nodes:
+                p = n.parent
+                if p is not None and id(p) not in seen:
+                    seen.add(id(p))
+                    out.append(p)
+            return PyQuery(out)
+
+    mod = types.ModuleType("pyquery")
+    mod.PyQuery = PyQuery
+    mod.pq = PyQuery
+    sys.modules["pyquery"] = mod
+
+
+def _install_misc_shims():
+    """道长系脚本还常 import ujson / jsonpath，一并给标准库替身。"""
+    if "ujson" not in sys.modules:
+        try:
+            import ujson  # noqa: F401
+        except Exception:
+            u = types.ModuleType("ujson")
+            u.loads = json.loads
+            u.dumps = json.dumps
+            u.load = json.load
+            u.dump = json.dump
+            sys.modules["ujson"] = u
+    if "jsonpath" not in sys.modules:
+        try:
+            import jsonpath  # noqa: F401
+        except Exception:
+            def _jsonpath(data, expr):
+                try:
+                    if not expr or not expr.startswith("$"):
+                        return False
+                    tokens = re.findall(
+                        r"\.([A-Za-z_][\w\-]*)|\[(\*|\d+)\]", expr[1:])
+                    cur = [data]
+                    for name, idx in tokens:
+                        nxt = []
+                        for d in cur:
+                            if name:
+                                if isinstance(d, dict) and name in d:
+                                    nxt.append(d[name])
+                            elif isinstance(d, list):
+                                if idx == "*":
+                                    nxt.extend(d)
+                                else:
+                                    i = int(idx)
+                                    if -len(d) <= i < len(d):
+                                        nxt.append(d[i])
+                        cur = nxt
+                        if not cur:
+                            return False
+                    return cur if cur else False
+                except Exception:
+                    return False
+
+            jp = types.ModuleType("jsonpath")
+            jp.jsonpath = _jsonpath
+            sys.modules["jsonpath"] = jp
+
+
+_install_pyquery_shim()
+_install_misc_shims()
+
+
 class _SpiderBase(object):
     """鱼壳 Spider 基类桩：脚本会继承它并调用这些方法。"""
 
