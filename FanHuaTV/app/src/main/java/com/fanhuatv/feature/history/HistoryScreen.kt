@@ -115,6 +115,9 @@ fun HistoryScreen(
                                 playUrl = row.playUrl
                             )
                             scope.launch {
+                                // 新一轮续播：先清掉上一部片源留下的弹幕/海报/歌词，
+                                // 本次解析成功后仓库会重新填回
+                                com.fanhuatv.player.LivePlayBus.clearMediaExtras()
                                 resuming = true
                                 // 存下来的直链多带时效 token，过会儿就失效（表现为容器不支持），
                                 // 有剧集 id 的先重新解析新直链；解析失败回退存的直链让播放器自己试

@@ -120,8 +120,15 @@ fun PlayerScreen(
     var artwork by remember { mutableStateOf(LivePlayBus.pendingArtwork) }
     var lyricRaw by remember { mutableStateOf(LivePlayBus.pendingLyric) }
     LaunchedEffect(currentUrl) {
+        // 起播时先取一次；同一地址内点「刷新」会重新解析，也可能带回新的海报/歌词，
+        // 所以再轮询一小段，值有变化才覆盖（不变就不动，歌词不会被重建闪动）
         artwork = LivePlayBus.pendingArtwork
         lyricRaw = LivePlayBus.pendingLyric
+        while (isActive) {
+            delay(500)
+            if (artwork != LivePlayBus.pendingArtwork) artwork = LivePlayBus.pendingArtwork
+            if (lyricRaw != LivePlayBus.pendingLyric) lyricRaw = LivePlayBus.pendingLyric
+        }
     }
     // 与电视版一致：jar 只给歌词没给海报时，拿影片封面当歌手海报
     val posterUrl = artwork.ifBlank {

@@ -129,6 +129,8 @@ class PlayerViewModel @Inject constructor(
      */
     fun playEpisodeResolved(item: VodItem?, rawUrl: String, speed: Float, playFlag: String = "") {
         viewModelScope.launch {
+            // 切集/刷新都算新的一次解析：先清空旧的弹幕/海报/歌词，解析成功后再填回
+            LivePlayBus.clearMediaExtras()
             val target = item ?: LivePlayBus.pendingItem
             // 直链快速通道：无需解析（json 站点/已解析地址）。
             // 必须是带 :// 的真地址才走快速通道；[文件名].mp4[...] 这类裸串进解析链路统一拦截

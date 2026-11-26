@@ -40,9 +40,17 @@ object LivePlayBus {
         this.pendingTitle = title
         this.pendingItem = item
         this.pendingSeek = seekTo
-        // 上一部片留下的海报/歌词清掉，等本次解析结果覆盖
-        this.pendingArtwork = ""
-        this.pendingLyric = ""
+        // 这里不清弹幕/海报/歌词：详情页、历史页都是「解析出地址」后才调 play()，
+        // 清了会把刚解析出来的海报/歌词一起抹掉（播放页永远收不到）。
+        // 改由 clearMediaExtras() 在每次点击播放的请求入口统一清。
+    }
+
+    /** 开始一次新的播放请求时调用：清掉上一部片源的弹幕/歌手海报/歌词，
+     *  解析成功后由仓库重新填回，避免残留在下一部片上 */
+    fun clearMediaExtras() {
+        pendingDanmaku = ""
+        pendingArtwork = ""
+        pendingLyric = ""
     }
 
     fun consume(): Triple<String, String, VodItem?> {

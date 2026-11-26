@@ -110,6 +110,8 @@ class DetailViewModel @Inject constructor(
      *  可用地址（原始 url），保证点了必有反应，而不是静默无跳转。 */
     fun play(item: VodItem, episodeUrl: String, playFlag: String = "", onReady: (String) -> Unit) {
         viewModelScope.launch {
+            // 新播放请求开始：先清掉上一部片源的弹幕/海报/歌词（解析成功后仓库会填回）
+            com.fanhuatv.player.LivePlayBus.clearMediaExtras()
             _notice.value = "正在解析播放地址…"
             val fallback = episodeUrl.ifBlank { item.playUrl }
             val result = withContext(Dispatchers.IO) {
@@ -138,6 +140,8 @@ class DetailViewModel @Inject constructor(
      *  播不出来立刻报错，绝不偷偷换站。 */
     fun autoPlay(item: VodItem, onReady: (VodItem, String) -> Unit) {
         viewModelScope.launch {
+            // 同上：请求入口清空，避免上一部的海报/歌词留给这一部
+            com.fanhuatv.player.LivePlayBus.clearMediaExtras()
             _notice.value = "正在解析播放地址…"
             val (detail, firstEp) = withContext(Dispatchers.IO) {
                 val d = if (item.episodes.isEmpty()) {

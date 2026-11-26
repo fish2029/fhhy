@@ -628,11 +628,11 @@ class JarRuntime @Inject constructor(
                 is String -> parseHeaderJson(h)
                 else -> null
             }
-            // 歌手海报：标准键 artwork；音乐类蜘蛛常用它带出封面图
-            val artwork = jsonStr(obj, "artwork", "artist_pic", "singer_pic")
-            // 歌词：三种给法都接——lyric 单串、lyrics 数组（取第一条）、
+            // 歌手海报：标准键 artwork；音乐类蜘蛛还常写作 pic/cover/artist_pic/singer_pic
+            val artwork = jsonStr(obj, "artwork", "pic", "cover", "artist_pic", "singer_pic")
+            // 歌词：三种给法都接——lyric/lrc 单串、lyrics 数组（取第一条）、
             // subs 数组里名字含 lyric/lrc/歌词 的条目（与电视版判定一致）
-            var lyric = obj.optString("lyric").takeIf { it.isNotBlank() }.orEmpty()
+            var lyric = jsonStr(obj, "lyric", "lrc").takeIf { it.isNotBlank() }.orEmpty()
             if (lyric.isBlank()) {
                 lyric = firstItemUrl(obj.optJSONArray("lyrics"))
             }
