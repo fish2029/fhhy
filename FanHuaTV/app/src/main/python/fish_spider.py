@@ -140,10 +140,28 @@ def _install_requests_shim():
         except Exception as e:
             raise Timeout("%s" % e)
 
+    class HTTPAdapter(object):
+        """requests.adapters.HTTPAdapter 替身：脚本常用它配重试/连接池，
+        这里只吞参数（重试/池化由 _build 的 urllib 直连承担）。"""
+
+        def __init__(self, *args, **kwargs):
+            self.max_retries = kwargs.get("max_retries")
+            for junk in ("pool_connections", "pool_maxsize", "pool_block"):
+                kwargs.pop(junk, None)
+
+        def mount(self, *args, **kwargs):
+            pass
+
+    class _Adapters(object):
+        HTTPAdapter = HTTPAdapter
+
     class Session(object):
         def __init__(self):
             self.headers = {"User-Agent": "Mozilla/5.0"}
             self.cookies = {}
+
+        def mount(self, prefix, adapter):
+            pass  # 替身无连接池，挂载是空操作
 
         def _merged(self, kw):
             kw = dict(kw)
@@ -199,6 +217,8 @@ def _install_requests_shim():
     _Shim.RequestException = RequestException
     _Shim.Timeout = Timeout
     _Shim.HTTPError = HTTPError
+    _Shim.adapters = _Adapters
+    _Shim.HTTPAdapter = HTTPAdapter
 
     mod = _Shim()
     sys.modules["requests"] = mod
@@ -206,8 +226,37 @@ def _install_requests_shim():
     return mod
 
 
+def _install_urllib3_shim():
+    """urllib3 替身：道长系脚本常 `from urllib3.util.retry import Retry`
+    配 requests 重试。只给 Retry 类吞参数，真实重试由 _build 承担。"""
+    try:
+        import urllib3  # noqa: F401
+        return
+    except Exception:
+        pass
+    if "urllib3" in sys.modules:
+        return
+
+    class Retry(object):
+        def __init__(self, *args, **kwargs):
+            self.total = kwargs.get("total")
+            self.backoff_factor = kwargs.get("backoff_factor")
+            self.status_forcelist = kwargs.get("status_forcelist")
+
+    u3 = types.ModuleType("urllib3")
+    util = types.ModuleType("urllib3.util")
+    retry = types.ModuleType("urllib3.util.retry")
+    retry.Retry = Retry
+    u3.util = util
+    u3.Retry = Retry
+    sys.modules["urllib3"] = u3
+    sys.modules["urllib3.util"] = util
+    sys.modules["urllib3.util.retry"] = retry
+
+
 # fish_spider 被 fanhua_runtime 先导入，在这里装好替身，脚本里再 `import requests` 就不会炸
 _install_requests_shim()
+_install_urllib3_shim()
 
 
 def _install_pyquery_shim():
@@ -439,9 +488,27 @@ def _install_pyquery_shim():
                     b.close()
                 except Exception:
                     pass
-                self._nodes = [n for n in b.root.children if isinstance(n, _Node)]
+                top = [n for n in b.root.children if isinstance(n, _Node)]
+                # lxml 会把残缺片段包进 html>body（如 pq('<div/>')('body') 也能命中），
+                # 这里对齐：顶层不是 html 就补一层 html>body 包裹；空输入不包裹
+                if top and not (len(top) == 1 and top[0].tag == "html"):
+                    html_n = _Node("html")
+                    body_n = _Node("body", parent=html_n)
+                    for n in top:
+                        n.parent = body_n
+                        body_n.children.append(n)
+                    for ch in b.root.children:
+                        if isinstance(ch, str) and ch.strip():
+                            body_n.children.append(ch)
+                    html_n.children.append(body_n)
+                    top = [html_n]
+                self._nodes = top
+            elif isinstance(nodes, PyQuery):
+                # 真 pyquery 用底层 lxml 元素重建；这里取原节点，避免 list() 迭代产出 PyQuery
+                self._nodes = list(nodes._nodes)
             else:
-                self._nodes = list(nodes or [])
+                self._nodes = [n._nodes[0] if isinstance(n, PyQuery) else n
+                               for n in (nodes or [])]
 
         def __call__(self, selector=None):
             if not selector:
