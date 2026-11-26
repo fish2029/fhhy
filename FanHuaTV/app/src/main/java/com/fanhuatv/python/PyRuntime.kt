@@ -201,7 +201,8 @@ class PyRuntime @Inject constructor(
     suspend fun home(scriptId: String): Resource<Pair<List<CategoryConfig>, List<VodItem>>> {
         val content = scriptContent(scriptId)
         if (content.isBlank()) return Resource.Error("脚本内容为空")
-        val result = callIo(30, "home", content, paramJson(mapOf("ext" to settings.pyExtOf(scriptId))))
+        // 首页分类：正常站点 5 秒内就出，五六秒出不来基本是废站，等再久也白等
+        val result = callIo(6, "home", content, paramJson(mapOf("ext" to settings.pyExtOf(scriptId))))
             ?: return Resource.Error(lastErrorMessage.ifBlank { "Python 调用失败" })
         return try {
             val obj = JsonParser.parseString(result).asJsonObject
