@@ -36,7 +36,7 @@ jobs:
       - name: Build APK
         run: |
           chmod +x gradlew
-          JVMARGS="-Xmx2g -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=320m"
+          JVMARGS="-Xmx3g -Xms128m -XX:+UseSerialGC -XX:MaxMetaspaceSize=1024m"
           if [ "${{ github.event.inputs.variant }}" = "release" ]; then
             ./gradlew :app:assembleRelease --no-daemon --info "-Dorg.gradle.jvmargs=${JVMARGS}"
           else
