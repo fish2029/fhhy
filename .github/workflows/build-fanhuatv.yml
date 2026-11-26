@@ -1,0 +1,49 @@
+name: Build FanHuaTV
+
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: '构建变体'
+        type: choice
+        options: [debug, release]
+        default: 'release'
+  push:
+    branches: [main]
+    paths: ['FanHuaTV/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FanHuaTV
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: strip windows-only java.home
+        run: sed -i '/org.gradle.java.home/d' gradle.properties
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/wrapper
+            ~/.gradle/caches
+          key: ${{ runner.os }}-fanhuatv-${{ hashFiles('FanHuaTV/**/*.gradle.kts', 'FanHuaTV/**/gradle.properties') }}
+          restore-keys: ${{ runner.os }}-fanhuatv-
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          JVMARGS="-Xmx2g -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=320m"
+          if [ "${{ github.event.inputs.variant }}" = "release" ]; then
+            ./gradlew :app:assembleRelease --no-daemon "-Dorg.gradle.jvmargs=${JVMARGS}"
+          else
+            ./gradlew :app:assembleDebug --no-daemon "-Dorg.gradle.jvmargs=${JVMARGS}"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fanhuatv-${{ github.event.inputs.variant || 'push' }}
+          path: app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
