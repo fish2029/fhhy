@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -480,55 +481,6 @@ fun PlayerScreen(
                 }
             }
 
-            // 歌手海报：音乐/MV 源在画面上居中显示（圆角+淡描边），
-            // 底部给控制条和歌词留位；普通影视没有 artwork 就不显示，不遮画面
-            if (posterUrl.isNotBlank()) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(bottom = 150.dp)
-                        .size(150.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                        .border(1.5.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(18.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AsyncImage(
-                        model = posterUrl,
-                        contentDescription = null,
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-
-            // 歌词：贴在控制条上方，当前句白色加粗、上下句半透明；锁定时不显示
-            if (!locked && lyricLines.isNotEmpty() && lyricIdx in lyricLines.indices) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 92.dp)
-                        .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    val from = (lyricIdx - 1).coerceAtLeast(0)
-                    val to = (lyricIdx + 1).coerceAtMost(lyricLines.size - 1)
-                    (from..to).forEach { i ->
-                        Text(
-                            lyricLines[i].text,
-                            color = if (i == lyricIdx) Color.White else Color.White.copy(alpha = 0.55f),
-                            fontSize = if (i == lyricIdx) 16.sp else 13.sp,
-                            fontWeight = if (i == lyricIdx) FontWeight.Bold else FontWeight.Normal,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-            }
-
             // ── 底部控制区：快进快退进度条 + 上一集/播放/下一集 + OSD 功能条 ──
             if (!locked) {
                 // 播放状态轮询：进度、时长、是否在播、当前集索引
@@ -792,6 +744,68 @@ fun PlayerScreen(
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         modifier = Modifier.clickable { expanded = !expanded }
                     )
+                }
+
+                // ── OSD 面板：歌手海报 + 歌词（音乐/MV 源才有，普通影视整块不显示）──
+                if (posterUrl.isNotBlank() || lyricLines.isNotEmpty()) {
+                    Spacer(Modifier.height(14.dp))
+                    Row(verticalAlignment = Alignment.Top) {
+                        if (posterUrl.isNotBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .width(108.dp)
+                                    .height(108.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .border(1.5.dp, Color(0xFFC9B8FF), RoundedCornerShape(12.dp))
+                            ) {
+                                AsyncImage(
+                                    model = posterUrl,
+                                    contentDescription = null,
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                            Spacer(Modifier.width(14.dp))
+                        }
+                        if (lyricLines.isNotEmpty()) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    "歌词",
+                                    color = Color.White,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                // 自动滚到当前句：滚到上一句的位置，让当前句落在列表顶部下一行
+                                val lyricListState = rememberLazyListState()
+                                LaunchedEffect(lyricIdx) {
+                                    if (lyricIdx >= 0) {
+                                        lyricListState.animateScrollToItem((lyricIdx - 1).coerceAtLeast(0))
+                                    }
+                                }
+                                LazyColumn(
+                                    state = lyricListState,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(150.dp)
+                                ) {
+                                    itemsIndexed(lyricLines) { i, line ->
+                                        Text(
+                                            line.text,
+                                            color = if (i == lyricIdx) AccentDeep else Color.White.copy(alpha = 0.85f),
+                                            fontSize = if (i == lyricIdx) 15.sp else 13.sp,
+                                            fontWeight = if (i == lyricIdx) FontWeight.Bold else FontWeight.Normal,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 3.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // 多线路分组：与详情页同款——jar 详情的线路按 $$$ 对应，整条失效的线路必须能切；
