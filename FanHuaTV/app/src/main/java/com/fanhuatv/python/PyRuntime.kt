@@ -371,7 +371,7 @@ class PyRuntime @Inject constructor(
     suspend fun probe(scriptId: String): String {
         val content = scriptContent(scriptId)
         if (content.isBlank()) return "脚本内容为空或文件已丢失"
-        val json = callIo(30, "probe", content)
+        val json = callIo(15, "probe", content)
             ?: return lastErrorMessage.ifBlank { "Python 调用失败" }
         return try {
             val o = JsonParser.parseString(json).asJsonObject
