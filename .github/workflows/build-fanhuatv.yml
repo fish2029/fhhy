@@ -38,9 +38,9 @@ jobs:
           chmod +x gradlew
           JVMARGS="-Xmx2g -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=320m"
           if [ "${{ github.event.inputs.variant }}" = "release" ]; then
-            ./gradlew :app:assembleRelease --no-daemon "-Dorg.gradle.jvmargs=${JVMARGS}"
+            ./gradlew :app:assembleRelease --no-daemon --info "-Dorg.gradle.jvmargs=${JVMARGS}"
           else
-            ./gradlew :app:assembleDebug --no-daemon "-Dorg.gradle.jvmargs=${JVMARGS}"
+            ./gradlew :app:assembleDebug --no-daemon --info "-Dorg.gradle.jvmargs=${JVMARGS}"
           fi
       - uses: actions/upload-artifact@v4
         with:
