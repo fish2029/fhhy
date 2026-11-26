@@ -294,10 +294,10 @@ class PyRuntime @Inject constructor(
     }
 
     /** PY 脚本解析真实播放地址：parse=1/jx=1 的网页嗅探地址无能力处理，直接报错（避免黑屏） */
-    suspend fun resolvePlay(scriptId: String, playUrl: String): Resource<String> {
+    suspend fun resolvePlay(scriptId: String, playUrl: String, title: String = ""): Resource<String> {
         val content = scriptContent(scriptId)
         if (content.isBlank()) return Resource.Error("脚本内容为空")
-        val param = paramJson(mapOf("playUrl" to playUrl, "ext" to settings.pyExtOf(scriptId)))
+        val param = paramJson(mapOf("playUrl" to playUrl, "ext" to settings.pyExtOf(scriptId), "title" to title))
         val result = callIo(30, "parse_play", content, param)
         val obj = result?.let {
             runCatching { JsonParser.parseString(it).asJsonObject }.getOrNull()

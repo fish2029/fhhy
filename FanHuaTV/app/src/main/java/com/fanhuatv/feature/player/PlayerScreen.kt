@@ -481,6 +481,56 @@ fun PlayerScreen(
                 }
             }
 
+            // 音乐 OSD：播放画面内、进度条上方——左边歌手海报、右边当前句歌词（音乐源才有）
+            if (posterUrl.isNotBlank() || lyricLines.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(start = 14.dp, end = 14.dp, bottom = 132.dp),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    if (posterUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = posterUrl,
+                            contentDescription = null,
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            modifier = Modifier
+                                .width(88.dp)
+                                .height(88.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .border(1.dp, Color(0xFFC9B8FF), RoundedCornerShape(10.dp))
+                        )
+                        Spacer(Modifier.width(12.dp))
+                    }
+                    if (lyricLines.isNotEmpty()) {
+                        val curIdx = if (lyricIdx < 0) 0 else lyricIdx
+                        Column {
+                            Text(
+                                lyricLines.getOrNull(curIdx)?.text ?: "",
+                                color = Color.White,
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold,
+                                lineHeight = 24.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            val nextLine = lyricLines.getOrNull(curIdx + 1)
+                            if (nextLine != null) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    nextLine.text,
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 13.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // ── 底部控制区：快进快退进度条 + 上一集/播放/下一集 + OSD 功能条 ──
             if (!locked) {
                 // 播放状态轮询：进度、时长、是否在播、当前集索引
@@ -746,67 +796,7 @@ fun PlayerScreen(
                     )
                 }
 
-                // ── OSD 面板：歌手海报 + 歌词（音乐/MV 源才有，普通影视整块不显示）──
-                if (posterUrl.isNotBlank() || lyricLines.isNotEmpty()) {
-                    Spacer(Modifier.height(14.dp))
-                    Row(verticalAlignment = Alignment.Top) {
-                        if (posterUrl.isNotBlank()) {
-                            Box(
-                                modifier = Modifier
-                                    .width(108.dp)
-                                    .height(108.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .border(1.5.dp, Color(0xFFC9B8FF), RoundedCornerShape(12.dp))
-                            ) {
-                                AsyncImage(
-                                    model = posterUrl,
-                                    contentDescription = null,
-                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                            Spacer(Modifier.width(14.dp))
-                        }
-                        if (lyricLines.isNotEmpty()) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    "歌词",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(Modifier.height(6.dp))
-                                // 自动滚到当前句：滚到上一句的位置，让当前句落在列表顶部下一行
-                                val lyricListState = rememberLazyListState()
-                                LaunchedEffect(lyricIdx) {
-                                    if (lyricIdx >= 0) {
-                                        lyricListState.animateScrollToItem((lyricIdx - 1).coerceAtLeast(0))
-                                    }
-                                }
-                                LazyColumn(
-                                    state = lyricListState,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(150.dp)
-                                ) {
-                                    itemsIndexed(lyricLines) { i, line ->
-                                        Text(
-                                            line.text,
-                                            color = if (i == lyricIdx) AccentDeep else Color.White.copy(alpha = 0.85f),
-                                            fontSize = if (i == lyricIdx) 15.sp else 13.sp,
-                                            fontWeight = if (i == lyricIdx) FontWeight.Bold else FontWeight.Normal,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(vertical = 3.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                // 歌词/海报已移到播放画面内（进度条上方），详情区不再重复显示
 
                 // 多线路分组：与详情页同款——jar 详情的线路按 $$$ 对应，整条失效的线路必须能切；
                 // 单线路不显示切换行。切线路只过滤选集，不自动开播。

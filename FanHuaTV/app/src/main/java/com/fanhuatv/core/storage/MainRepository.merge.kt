@@ -1035,7 +1035,7 @@ class MainRepository @Inject constructor(
         }
 
         if (item.source == "py" && item.scriptId.isNotBlank()) {
-            val pyRes = pyRuntime.resolvePlay(item.scriptId, url)
+            val pyRes = pyRuntime.resolvePlay(item.scriptId, url, item.displayTitle)
             val playUrl = (pyRes as? Resource.Success)?.data ?: return pyRes
             // py 脚本返回直链直接播；网页嗅探地址（parse=1/jx=1 或非直链）与 jar 链路同款：
             // ① 配置里的 jx 解析接口 ② WebView 嗅探，两条路都试，不行才报错

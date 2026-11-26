@@ -1081,6 +1081,50 @@ def fish_detail(source, param_json):
         return json.dumps(payload, ensure_ascii=False)
 
 
+def _music_extras(title):
+    """按歌名从网易云补歌词（LRC 原文）和专辑封面图：所有音乐 py 脚本播放时统一生效。
+    接口失败静默返回空，不阻塞播放。"""
+    out = {"artwork": "", "lyric": ""}
+    t = (title or "").strip()
+    if not t:
+        return out
+    try:
+        import urllib.request as _ur
+        import urllib.parse as _up
+        hdr = {"User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 "
+                             "(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+               "Referer": "https://music.163.com/"}
+        q = _up.urlencode({"s": t, "type": 1, "limit": 1, "offset": 0})
+        url = "https://music.163.com/api/search/get?%s" % q
+        req = _ur.Request(url, headers=hdr)
+        data = json.loads(_ur.urlopen(req, timeout=6).read().decode("utf-8", "ignore"))
+        song = (((data.get("result") or {}).get("songs") or [None])[0])
+        if not song:
+            return out
+        sid = song.get("id")
+        if sid:
+            try:
+                durl = "https://music.163.com/api/song/detail?%s" % _up.urlencode(
+                    {"id": sid, "ids": "[%d]" % sid})
+                dd = json.loads(_ur.urlopen(_ur.Request(durl, headers=hdr), timeout=6)
+                                .read().decode("utf-8", "ignore"))
+                album = (((dd.get("songs") or [None])[0]) or {}).get("album") or {}
+                out["artwork"] = album.get("picUrl") or ""
+            except Exception:
+                pass
+        try:
+            lurl = "https://music.163.com/api/song/lyric?%s" % _up.urlencode(
+                {"id": sid, "lv": 1, "kv": 1, "tv": -1})
+            ld = json.loads(_ur.urlopen(_ur.Request(lurl, headers=hdr), timeout=6)
+                            .read().decode("utf-8", "ignore"))
+            out["lyric"] = (ld.get("lrc") or {}).get("lyric") or ""
+        except Exception:
+            pass
+    except Exception:
+        pass
+    return out
+
+
 def fish_play(source, param_json):
     try:
         param = json.loads(param_json) if isinstance(param_json, str) else (param_json or {})
@@ -1148,6 +1192,14 @@ def fish_play(source, param_json):
             ly = result.get("lyric") or result.get("lyrics") or ""
             if isinstance(ly, str):
                 res_lyric = ly
+        # 音乐统一补歌词/封面：脚本没带且播的是音频直链时，按标题从网易云查
+        if play_url and not res_artwork and not res_lyric:
+            low = play_url.lower()
+            if any(e in low for e in
+                   (".mp3", ".flac", ".m4a", ".aac", ".wav", ".ogg")):
+                extra = _music_extras(str(param.get("title", "")))
+                res_artwork = extra["artwork"]
+                res_lyric = extra["lyric"]
         # parse/jx/header/artwork/lyric 透传给 Kotlin 端：parse/jx=1 表示需嗅探（App 端拦截），
         # header 是该地址的请求头要求（播放时应用）
         return json.dumps({"result": play_url, "parse": res_parse, "jx": res_jx,
