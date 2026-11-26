@@ -61,6 +61,13 @@ def _install_requests_shim():
             self._raw = raw
             self.status_code = getattr(raw, "code", 200) or 200
             self.url = getattr(raw, "url", "") or ""
+            # 请求头声明了 gzip，响应可能被压缩，这里解压回明文
+            try:
+                if (raw.headers.get("Content-Encoding") or "").lower() == "gzip":
+                    import gzip as _gzip
+                    body = _gzip.decompress(body)
+            except Exception:
+                pass
             self.content = body
             try:
                 ctype = raw.headers.get("Content-Type", "") or ""
@@ -111,6 +118,10 @@ def _install_requests_shim():
         method = kwargs.pop("method", None)
         headers = dict(kwargs.pop("headers", {}) or {})
         headers.setdefault("User-Agent", "Mozilla/5.0")
+        # 真 requests 默认带的头：没有这些会被部分站点的防护当机器人拦下
+        headers.setdefault("Accept", "*/*")
+        headers.setdefault("Accept-Language", "zh-CN,zh;q=0.9")
+        headers.setdefault("Accept-Encoding", "gzip")
         params = kwargs.pop("params", None)
         if params:
             url += ("&" if "?" in url else "?") + _up.urlencode(params)
@@ -119,6 +130,10 @@ def _install_requests_shim():
         if payload is not None:
             data = _json.dumps(payload, ensure_ascii=False).encode("utf-8")
             headers.setdefault("Content-Type", "application/json")
+        if isinstance(data, dict) or (isinstance(data, list) and data and not isinstance(data[0], str)):
+            # requests 风格表单：dict / 键值对列表自动编码，否则服务器收到的 POST 是空的
+            data = _up.urlencode(data).encode("utf-8")
+            headers.setdefault("Content-Type", "application/x-www-form-urlencoded")
         if isinstance(data, str):
             data = data.encode("utf-8")
         timeout = kwargs.pop("timeout", None) or 15
