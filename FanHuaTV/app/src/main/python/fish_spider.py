@@ -25,6 +25,191 @@ except Exception:
     _requests = None
 
 
+def _install_requests_shim():
+    """没有 pip 包环境（Chaquopy 只带标准库），但鱼壳脚本十有八九直接
+    `import requests` —— 一旦 ImportError，整个脚本 exec 失败，首页分类全空。
+    这里给一个基于 urllib 的最小 requests 替身（注册进 sys.modules），
+    覆盖音乐类脚本最常用的 get/post/text/json/status_code/headers/Session。
+    """
+    global _requests
+    if _requests is not None:
+        return _requests
+    import urllib.request as _ur
+    import urllib.error as _ue
+    import urllib.parse as _up
+    import ssl as _ssl
+    import json as _json
+
+    class RequestException(Exception):
+        pass
+
+    class Timeout(RequestException):
+        pass
+
+    class HTTPError(RequestException):
+        def __init__(self, response=None, *args):
+            super().__init__(*args)
+            self.response = response
+
+    _ctx = _ssl.create_default_context()
+    _ctx.check_hostname = False
+    _ctx.verify_mode = _ssl.CERT_NONE
+
+    class Response(object):
+        def __init__(self, raw, body):
+            self._raw = raw
+            self.status_code = getattr(raw, "code", 200) or 200
+            self.url = getattr(raw, "url", "") or ""
+            self.content = body
+            try:
+                ctype = raw.headers.get("Content-Type", "") or ""
+            except Exception:
+                ctype = ""
+            self.encoding = "utf-8"
+            if "charset=" in ctype:
+                self.encoding = ctype.split("charset=")[-1].split(";")[0].strip() or "utf-8"
+
+        @property
+        def headers(self):
+            try:
+                return self._raw.headers
+            except Exception:
+                return {}
+
+        @property
+        def ok(self):
+            return self.status_code < 400
+
+        @property
+        def apparent_encoding(self):
+            return self.encoding
+
+        @property
+        def text(self):
+            for enc in (self.encoding, "utf-8", "gb18030"):
+                try:
+                    return self.content.decode(enc)
+                except Exception:
+                    continue
+            return self.content.decode("utf-8", "ignore")
+
+        def json(self):
+            return _json.loads(self.text)
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise HTTPError(self)
+
+        def iter_lines(self):
+            return self.text.splitlines()
+
+        def close(self):
+            pass
+
+    def _build(url, kwargs):
+        method = kwargs.pop("method", None)
+        headers = dict(kwargs.pop("headers", {}) or {})
+        headers.setdefault("User-Agent", "Mozilla/5.0")
+        params = kwargs.pop("params", None)
+        if params:
+            url += ("&" if "?" in url else "?") + _up.urlencode(params)
+        data = kwargs.pop("data", None)
+        payload = kwargs.pop("json", None)
+        if payload is not None:
+            data = _json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            headers.setdefault("Content-Type", "application/json")
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+        timeout = kwargs.pop("timeout", None) or 15
+        for junk in ("verify", "allow_redirects", "proxies", "stream",
+                     "cert", "hooks", "auth", "files"):
+            kwargs.pop(junk, None)
+        if method is None:
+            method = "POST" if data is not None else "GET"
+        req = _ur.Request(url, data=data, headers=headers, method=method)
+        try:
+            raw = _ur.urlopen(req, timeout=timeout, context=_ctx)
+            return Response(raw, raw.read())
+        except _ue.HTTPError as e:
+            body = b""
+            try:
+                body = e.read()
+            except Exception:
+                pass
+            return Response(e, body)
+        except Exception as e:
+            raise Timeout("%s" % e)
+
+    class Session(object):
+        def __init__(self):
+            self.headers = {"User-Agent": "Mozilla/5.0"}
+            self.cookies = {}
+
+        def _merged(self, kw):
+            kw = dict(kw)
+            h = dict(self.headers)
+            h.update({str(k).title(): v for k, v in (kw.pop("headers", {}) or {}).items()})
+            kw["headers"] = h
+            return kw
+
+        def get(self, url, **kw):
+            return _build(url, self._merged(kw))
+
+        def post(self, url, **kw):
+            kw.setdefault("method", "POST")
+            return _build(url, self._merged(kw))
+
+        def request(self, method, url, **kw):
+            kw["method"] = method
+            return _build(url, self._merged(kw))
+
+        def head(self, url, **kw):
+            return self.request("HEAD", url, **kw)
+
+        def close(self):
+            pass
+
+    class _Codes(object):
+        ok = 200
+        not_found = 404
+
+    class _Shim(object):
+        codes = _Codes()
+
+        @staticmethod
+        def get(url, **kw):
+            return _build(url, dict(kw))
+
+        @staticmethod
+        def post(url, **kw):
+            kw.setdefault("method", "POST")
+            return _build(url, dict(kw))
+
+        @staticmethod
+        def request(method, url, **kw):
+            kw["method"] = method
+            return _build(url, dict(kw))
+
+        @staticmethod
+        def head(url, **kw):
+            return _Shim.request("HEAD", url, **kw)
+
+    # 异常类/Session 在类体内不能直接自引用（class body 不构成闭包），挂到类上
+    _Shim.Session = Session
+    _Shim.RequestException = RequestException
+    _Shim.Timeout = Timeout
+    _Shim.HTTPError = HTTPError
+
+    mod = _Shim()
+    sys.modules["requests"] = mod
+    _requests = mod
+    return mod
+
+
+# fish_spider 被 fanhua_runtime 先导入，在这里装好替身，脚本里再 `import requests` 就不会炸
+_install_requests_shim()
+
+
 class _SpiderBase(object):
     """鱼壳 Spider 基类桩：脚本会继承它并调用这些方法。"""
 
