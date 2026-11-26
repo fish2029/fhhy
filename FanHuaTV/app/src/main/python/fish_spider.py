@@ -152,9 +152,6 @@ def _install_requests_shim():
         def mount(self, *args, **kwargs):
             pass
 
-    class _Adapters(object):
-        HTTPAdapter = HTTPAdapter
-
     class Session(object):
         def __init__(self):
             self.headers = {"User-Agent": "Mozilla/5.0"}
@@ -217,11 +214,16 @@ def _install_requests_shim():
     _Shim.RequestException = RequestException
     _Shim.Timeout = Timeout
     _Shim.HTTPError = HTTPError
-    _Shim.adapters = _Adapters
     _Shim.HTTPAdapter = HTTPAdapter
 
     mod = _Shim()
     sys.modules["requests"] = mod
+    # `from requests.adapters import HTTPAdapter` 走的是独立子模块导入，
+    # 光有 mod.adapters 属性不够，必须把 requests.adapters 注册进 sys.modules
+    adapters_mod = types.ModuleType("requests.adapters")
+    adapters_mod.HTTPAdapter = HTTPAdapter
+    mod.adapters = adapters_mod
+    sys.modules["requests.adapters"] = adapters_mod
     _requests = mod
     return mod
 
@@ -248,6 +250,7 @@ def _install_urllib3_shim():
     retry = types.ModuleType("urllib3.util.retry")
     retry.Retry = Retry
     u3.util = util
+    util.Retry = Retry
     u3.Retry = Retry
     sys.modules["urllib3"] = u3
     sys.modules["urllib3.util"] = util
