@@ -133,22 +133,12 @@ fun MineScreen(
                     DropdownItem("圆角") { vm.updateUi { it.copy(buttonStyle = "rounded") }; close() }
                     DropdownItem("胶囊") { vm.updateUi { it.copy(buttonStyle = "capsule") }; close() }
                 }
-                // 全局文字颜色：主文字颜色全局刷新，切换即时生效
-                OptionRow(Icons.Filled.TextFields, "全局文字颜色", current = textColorLabel(ui.textColor ?: "white")) { close ->
-                    DropdownItem("纯白") { vm.updateUi { it.copy(textColor = "white") }; close() }
-                    DropdownItem("暖白") { vm.updateUi { it.copy(textColor = "warm") }; close() }
-                    DropdownItem("淡金") { vm.updateUi { it.copy(textColor = "gold") }; close() }
-                    DropdownItem("柠黄") { vm.updateUi { it.copy(textColor = "lemon") }; close() }
-                    DropdownItem("杏橙") { vm.updateUi { it.copy(textColor = "orange") }; close() }
-                    DropdownItem("樱粉") { vm.updateUi { it.copy(textColor = "pink") }; close() }
-                    DropdownItem("薄荷绿") { vm.updateUi { it.copy(textColor = "mint") }; close() }
-                    DropdownItem("淡绿") { vm.updateUi { it.copy(textColor = "green") }; close() }
-                    DropdownItem("天青") { vm.updateUi { it.copy(textColor = "cyan") }; close() }
-                    DropdownItem("天蓝") { vm.updateUi { it.copy(textColor = "blue") }; close() }
-                    DropdownItem("藕荷") { vm.updateUi { it.copy(textColor = "lavender") }; close() }
-                    DropdownItem("淡紫") { vm.updateUi { it.copy(textColor = "purple") }; close() }
-                    DropdownItem("银灰") { vm.updateUi { it.copy(textColor = "silver") }; close() }
-                }
+                // 全局文字颜色：一排排色点直接点选（与强调色同款交互），切换即时生效
+                SettingHeader(Icons.Filled.TextFields, "全局文字颜色", current = textColorLabel(ui.textColor ?: "white"))
+                TextColorDotRow(
+                    selected = ui.textColor ?: "white",
+                    onSelect = { key -> vm.updateUi { it.copy(textColor = key) } }
+                )
                 Text(
                     "强调色、按钮样式、文字颜色、外观模式全部即时生效，切换不会中断浏览位置。",
                     color = TextSecondary,
@@ -332,6 +322,49 @@ private fun SegmentedCapsule(
                     fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
                     maxLines = 1
                 )
+            }
+        }
+    }
+    Spacer(Modifier.height(6.dp))
+}
+
+/** 全局文字颜色色点选择器：与强调色同款交互，13 档分两排，选中的带勾 + 描边 */
+@Composable
+private fun TextColorDotRow(selected: String, onSelect: (String) -> Unit) {
+    val keys = com.fanhuatv.ui.theme.TEXT_COLORS.keys.toList()
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        keys.chunked(7).forEach { rowKeys ->
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                rowKeys.forEach { key ->
+                    val isSel = key == selected
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .background(com.fanhuatv.ui.theme.TEXT_COLORS[key] ?: Color.White)
+                            .border(
+                                width = if (isSel) 2.dp else 0.dp,
+                                color = if (isSel) Color.White.copy(alpha = 0.85f) else Color.Transparent,
+                                shape = CircleShape
+                            )
+                            .clickable { onSelect(key) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSel) {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(17.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
