@@ -218,17 +218,16 @@ private fun buttonStyleLabel(key: String): String = when (key) {
 }
 
 private fun textColorLabel(key: String): String = when (key) {
-    "warm" -> "暖白"
-    "gold" -> "淡金"
-    "lemon" -> "柠黄"
-    "orange" -> "杏橙"
-    "pink" -> "樱粉"
-    "mint" -> "薄荷绿"
-    "green" -> "淡绿"
-    "cyan" -> "天青"
+    "red" -> "赤红"
+    "orange" -> "橙色"
+    "yellow" -> "金黄"
+    "lime" -> "青柠"
+    "green" -> "草绿"
+    "cyan" -> "青色"
     "blue" -> "天蓝"
-    "lavender" -> "藕荷"
-    "purple" -> "淡紫"
+    "indigo" -> "靛蓝"
+    "purple" -> "紫色"
+    "pink" -> "桃粉"
     "silver" -> "银灰"
     else -> "纯白"
 }
@@ -328,12 +327,12 @@ private fun SegmentedCapsule(
     Spacer(Modifier.height(6.dp))
 }
 
-/** 全局文字颜色色点选择器：与强调色同款交互，13 档分两排，选中的带勾 + 描边 */
+/** 全局文字颜色色点选择器：与强调色同款交互，12 档分两排，选中的带勾 + 描边 */
 @Composable
 private fun TextColorDotRow(selected: String, onSelect: (String) -> Unit) {
     val keys = com.fanhuatv.ui.theme.TEXT_COLORS.keys.toList()
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        keys.chunked(7).forEach { rowKeys ->
+        keys.chunked(6).forEach { rowKeys ->
             Row(
                 modifier = Modifier
                     .padding(horizontal = 20.dp, vertical = 4.dp)
