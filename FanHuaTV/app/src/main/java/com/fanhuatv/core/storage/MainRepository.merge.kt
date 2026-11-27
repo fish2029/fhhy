@@ -743,7 +743,12 @@ class MainRepository @Inject constructor(
                                         list.map { it.copy(siteKey = t.key, source = "jar") }
                                     }
                                 }
-                                "py" -> when (val r = runCatching { pyRuntime.search(t.scriptId, keyword) }.getOrNull()) {
+                                "py" -> when (val r = runCatching {
+                                    // 网盘源搜索要爬上游聚合接口，普遍 20-30s，15s 必超时全空
+                                    //（表现为搜索里只出个别快的网盘），放宽到 45s；普通源保持 15s
+                                    val pyTimeout = if (isPanFlag(t.name)) 45L else 15L
+                                    pyRuntime.search(t.scriptId, keyword, pyTimeout)
+                                }.getOrNull()) {
                                     is Resource.Success -> r.data.map {
                                         it.copy(siteKey = t.key, source = "py", scriptId = t.scriptId)
                                     }

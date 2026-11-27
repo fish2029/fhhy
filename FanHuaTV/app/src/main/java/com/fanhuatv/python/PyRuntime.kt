@@ -262,12 +262,14 @@ class PyRuntime @Inject constructor(
     private fun paramJson(map: Map<String, String>): String = gson.toJson(map)
 
     /** PY 脚本搜索 */
-    suspend fun search(scriptId: String, keyword: String): Resource<List<VodItem>> {
+    suspend fun search(scriptId: String, keyword: String, timeoutSec: Long = 15): Resource<List<VodItem>> {
         val content = scriptContent(scriptId)
         if (content.isBlank()) return Resource.Error("脚本内容为空")
         val param = paramJson(mapOf("keyword" to keyword, "ext" to settings.pyExtOf(scriptId)))
-        // 搜索超时收紧到 15s：慢脚本早点放弃释放线程，不拖累整体出结果速度
-        val result = callIo(15, "search", content, param)
+        // 普通源 15s：慢脚本早点放弃释放线程，不拖累整体出结果速度；
+        // 网盘源（夸克/迅雷/天翼等）搜索要爬上游聚合接口，普遍 20-30s，15s 必超时全空，
+        // 由调用方按线路名传入更长超时
+        val result = callIo(timeoutSec, "search", content, param)
         return parseVodResult(result)
     }
 
