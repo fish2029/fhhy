@@ -119,7 +119,9 @@ fun HomeScreen(
             is Resource.Success -> {
                 // 「我的-导航首页」设置：大图横幅 / 海报密度 / 继续观看
                 val uiSettings by appVm.uiSettings.collectAsStateWithLifecycle()
-                Column(modifier = Modifier.fillMaxSize()) {
+                // 整页可滚动：网格固定两行完整高度，轮播图开着、列数少时页面超出屏幕
+                // 就往下滚，保证 2/3/4 列两行都完整显示，不再截断第二行
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                     Spacer(Modifier.height(72.dp)) // 给悬浮搜索栏留位
 
                     // 轮播 Banner（可在「我的-导航首页-大图横幅」关闭）
