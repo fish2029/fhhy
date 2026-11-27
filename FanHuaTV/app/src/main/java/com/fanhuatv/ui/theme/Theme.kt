@@ -20,8 +20,45 @@ import androidx.compose.ui.Modifier
 /** 强调色方案：base=默认态，deep=选中态，pill=渐变胶囊（搜索栏/分类条同一套） */
 data class AccentScheme(val base: Color, val deep: Color, val pill: List<Color>)
 
-/** 可选强调色（「我的-主题色彩-强调色」） */
-val ACCENT_SCHEMES = mapOf(
+/** 颜色加深/提亮：按比例缩放 RGB，用于程序生成强调色方案 */
+private fun darken(c: Color, f: Float = 0.78f) = Color(c.red * f, c.green * f, c.blue * f)
+private fun lighten(c: Color, f: Float = 1.25f) = Color(
+    (c.red * f).coerceAtMost(1f), (c.green * f).coerceAtMost(1f), (c.blue * f).coerceAtMost(1f)
+)
+
+/** 由基准色程序生成强调色方案：deep 加深一档，pill 用一深一浅做渐变 */
+private fun accentFrom(base: Color) = AccentScheme(base, darken(base), listOf(darken(base, 0.9f), lighten(base)))
+
+/** 可选全局文字颜色（「我的-主题色彩-全局文字颜色」），24 档全色系，深底可读 */
+val TEXT_COLORS = mapOf(
+    "white" to Color(0xFFFFFFFF),
+    "silver" to Color(0xFFCED4DA),
+    "red" to Color(0xFFFF5C5C),
+    "crimson" to Color(0xFFE03131),
+    "rose" to Color(0xFFF06595),
+    "orange" to Color(0xFFFF9F43),
+    "tangerine" to Color(0xFFF76707),
+    "yellow" to Color(0xFFFCC419),
+    "lemon" to Color(0xFFFFE066),
+    "lime" to Color(0xFFA9E34B),
+    "green" to Color(0xFF51CF66),
+    "forest" to Color(0xFF2F9E44),
+    "cyan" to Color(0xFF22B8CF),
+    "teal" to Color(0xFF0CA678),
+    "sky" to Color(0xFF339AF0),
+    "azure" to Color(0xFF1C7ED6),
+    "indigo" to Color(0xFF5C7CFA),
+    "purple" to Color(0xFF9775FA),
+    "violet" to Color(0xFF7048E8),
+    "magenta" to Color(0xFFD6409F),
+    "pink" to Color(0xFFF783AC),
+    "salmon" to Color(0xFFFF8787),
+    "brown" to Color(0xFFA9745B),
+    "wine" to Color(0xFF9A3B3B)
+)
+
+/** 手工调校的 6 档强调色（保持原视觉），其余档位由 TEXT_COLORS 程序生成 */
+private val HAND_TUNED_ACCENTS = mapOf(
     "purple" to AccentScheme(Color(0xFF9D5CE0), Color(0xFF7A45E0), listOf(Color(0xFF7B5FE0), Color(0xFFB06DE6))),
     "blue" to AccentScheme(Color(0xFF4D7CF6), Color(0xFF3560D9), listOf(Color(0xFF4D7CF6), Color(0xFF86A9FF))),
     "cyan" to AccentScheme(Color(0xFF2BB3C0), Color(0xFF1E8E99), listOf(Color(0xFF2BB3C0), Color(0xFF74D9E2))),
@@ -29,6 +66,11 @@ val ACCENT_SCHEMES = mapOf(
     "orange" to AccentScheme(Color(0xFFE08A3C), Color(0xFFC26E22), listOf(Color(0xFFE08A3C), Color(0xFFF5B96E))),
     "green" to AccentScheme(Color(0xFF4CAF7D), Color(0xFF389062), listOf(Color(0xFF4CAF7D), Color(0xFF8AD9B4)))
 )
+
+/** 可选强调色（「我的-主题色彩-强调色」）：手调 6 档 + 全色系程序生成，与文字颜色同源 */
+val ACCENT_SCHEMES: Map<String, AccentScheme> = HAND_TUNED_ACCENTS + TEXT_COLORS
+    .filterKeys { it !in HAND_TUNED_ACCENTS }
+    .mapValues { (_, c) -> accentFrom(c) }
 
 /** 当前强调色 key：快照状态，改一处全局刷新（所有直接引用 Accent/AccentDeep/AccentPill 的地方自动生效） */
 private var accentKey by mutableStateOf("purple")
@@ -76,34 +118,6 @@ val Accent: Color get() = (ACCENT_SCHEMES[accentKey] ?: ACCENT_SCHEMES.getValue(
 val AccentDeep: Color get() = (ACCENT_SCHEMES[accentKey] ?: ACCENT_SCHEMES.getValue("purple")).deep
 /** 全局按钮/胶囊统一的渐变（与站源弹窗标题栏同一套） */
 val AccentPill: List<Color> get() = (ACCENT_SCHEMES[accentKey] ?: ACCENT_SCHEMES.getValue("purple")).pill
-
-/** 可选全局文字颜色（「我的-主题色彩-全局文字颜色」），24 档全色系，深底可读 */
-val TEXT_COLORS = mapOf(
-    "white" to Color(0xFFFFFFFF),
-    "silver" to Color(0xFFCED4DA),
-    "red" to Color(0xFFFF5C5C),
-    "crimson" to Color(0xFFE03131),
-    "rose" to Color(0xFFF06595),
-    "orange" to Color(0xFFFF9F43),
-    "tangerine" to Color(0xFFF76707),
-    "yellow" to Color(0xFFFCC419),
-    "lemon" to Color(0xFFFFE066),
-    "lime" to Color(0xFFA9E34B),
-    "green" to Color(0xFF51CF66),
-    "forest" to Color(0xFF2F9E44),
-    "cyan" to Color(0xFF22B8CF),
-    "teal" to Color(0xFF0CA678),
-    "sky" to Color(0xFF339AF0),
-    "azure" to Color(0xFF1C7ED6),
-    "indigo" to Color(0xFF5C7CFA),
-    "purple" to Color(0xFF9775FA),
-    "violet" to Color(0xFF7048E8),
-    "magenta" to Color(0xFFD6409F),
-    "pink" to Color(0xFFF783AC),
-    "salmon" to Color(0xFFFF8787),
-    "brown" to Color(0xFFA9745B),
-    "wine" to Color(0xFF9A3B3B)
-)
 
 /** 全局主文字颜色：快照状态，切换即时全局刷新 */
 val TextPrimary: Color get() = TEXT_COLORS[textColorKey] ?: Color.White

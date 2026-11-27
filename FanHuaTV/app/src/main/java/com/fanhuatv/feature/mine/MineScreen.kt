@@ -203,7 +203,7 @@ private fun accentLabel(key: String): String = when (key) {
     "pink" -> "绯红玫粉"
     "orange" -> "暖阳橙"
     "green" -> "松石绿"
-    else -> key
+    else -> textColorLabel(key)
 }
 
 private fun bottomBarLabel(key: String): String = when (key) {
@@ -382,37 +382,42 @@ private fun TextColorDotRow(selected: String, onSelect: (String) -> Unit) {
     Spacer(Modifier.height(6.dp))
 }
 
-/** 强调色色点选择器：一排圆点，选中的带勾 + 描边 */
+/** 强调色色点选择器：与文字颜色同款交互，24 档分三排，选中的带勾 + 描边 */
 @Composable
 private fun AccentDotRow(selected: String, onSelect: (String) -> Unit) {
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 20.dp, vertical = 4.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        ACCENT_SCHEMES.forEach { (key, scheme) ->
-            val isSel = key == selected
-            Box(
+    val keys = ACCENT_SCHEMES.keys.toList()
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        keys.chunked(8).forEach { rowKeys ->
+            Row(
                 modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(scheme.base)
-                    .border(
-                        width = if (isSel) 2.dp else 0.dp,
-                        color = if (isSel) Color.White.copy(alpha = 0.85f) else Color.Transparent,
-                        shape = CircleShape
-                    )
-                    .clickable { onSelect(key) },
-                contentAlignment = Alignment.Center
+                    .padding(horizontal = 20.dp, vertical = 4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (isSel) {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(17.dp)
-                    )
+                rowKeys.forEach { key ->
+                    val isSel = key == selected
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .background(ACCENT_SCHEMES[key]?.base ?: Color.White)
+                            .border(
+                                width = if (isSel) 2.dp else 0.dp,
+                                color = if (isSel) Color.White.copy(alpha = 0.85f) else Color.Transparent,
+                                shape = CircleShape
+                            )
+                            .clickable { onSelect(key) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSel) {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(17.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
