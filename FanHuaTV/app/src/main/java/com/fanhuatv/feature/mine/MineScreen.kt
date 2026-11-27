@@ -138,8 +138,16 @@ fun MineScreen(
                     DropdownItem("纯白") { vm.updateUi { it.copy(textColor = "white") }; close() }
                     DropdownItem("暖白") { vm.updateUi { it.copy(textColor = "warm") }; close() }
                     DropdownItem("淡金") { vm.updateUi { it.copy(textColor = "gold") }; close() }
+                    DropdownItem("柠黄") { vm.updateUi { it.copy(textColor = "lemon") }; close() }
+                    DropdownItem("杏橙") { vm.updateUi { it.copy(textColor = "orange") }; close() }
+                    DropdownItem("樱粉") { vm.updateUi { it.copy(textColor = "pink") }; close() }
+                    DropdownItem("薄荷绿") { vm.updateUi { it.copy(textColor = "mint") }; close() }
+                    DropdownItem("淡绿") { vm.updateUi { it.copy(textColor = "green") }; close() }
+                    DropdownItem("天青") { vm.updateUi { it.copy(textColor = "cyan") }; close() }
                     DropdownItem("天蓝") { vm.updateUi { it.copy(textColor = "blue") }; close() }
+                    DropdownItem("藕荷") { vm.updateUi { it.copy(textColor = "lavender") }; close() }
                     DropdownItem("淡紫") { vm.updateUi { it.copy(textColor = "purple") }; close() }
+                    DropdownItem("银灰") { vm.updateUi { it.copy(textColor = "silver") }; close() }
                 }
                 Text(
                     "强调色、按钮样式、文字颜色、外观模式全部即时生效，切换不会中断浏览位置。",
@@ -222,8 +230,16 @@ private fun buttonStyleLabel(key: String): String = when (key) {
 private fun textColorLabel(key: String): String = when (key) {
     "warm" -> "暖白"
     "gold" -> "淡金"
+    "lemon" -> "柠黄"
+    "orange" -> "杏橙"
+    "pink" -> "樱粉"
+    "mint" -> "薄荷绿"
+    "green" -> "淡绿"
+    "cyan" -> "天青"
     "blue" -> "天蓝"
+    "lavender" -> "藕荷"
     "purple" -> "淡紫"
+    "silver" -> "银灰"
     else -> "纯白"
 }
 
