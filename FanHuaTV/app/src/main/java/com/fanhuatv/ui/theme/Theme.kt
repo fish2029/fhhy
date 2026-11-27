@@ -77,20 +77,32 @@ val AccentDeep: Color get() = (ACCENT_SCHEMES[accentKey] ?: ACCENT_SCHEMES.getVa
 /** 全局按钮/胶囊统一的渐变（与站源弹窗标题栏同一套） */
 val AccentPill: List<Color> get() = (ACCENT_SCHEMES[accentKey] ?: ACCENT_SCHEMES.getValue("purple")).pill
 
-/** 可选全局文字颜色（「我的-主题色彩-全局文字颜色」），赤橙黄绿青蓝紫全套，深底可读 */
+/** 可选全局文字颜色（「我的-主题色彩-全局文字颜色」），24 档全色系，深底可读 */
 val TEXT_COLORS = mapOf(
     "white" to Color(0xFFFFFFFF),
+    "silver" to Color(0xFFCED4DA),
     "red" to Color(0xFFFF5C5C),
+    "crimson" to Color(0xFFE03131),
+    "rose" to Color(0xFFF06595),
     "orange" to Color(0xFFFF9F43),
+    "tangerine" to Color(0xFFF76707),
     "yellow" to Color(0xFFFCC419),
+    "lemon" to Color(0xFFFFE066),
     "lime" to Color(0xFFA9E34B),
     "green" to Color(0xFF51CF66),
+    "forest" to Color(0xFF2F9E44),
     "cyan" to Color(0xFF22B8CF),
-    "blue" to Color(0xFF339AF0),
+    "teal" to Color(0xFF0CA678),
+    "sky" to Color(0xFF339AF0),
+    "azure" to Color(0xFF1C7ED6),
     "indigo" to Color(0xFF5C7CFA),
     "purple" to Color(0xFF9775FA),
+    "violet" to Color(0xFF7048E8),
+    "magenta" to Color(0xFFD6409F),
     "pink" to Color(0xFFF783AC),
-    "silver" to Color(0xFFCED4DA)
+    "salmon" to Color(0xFFFF8787),
+    "brown" to Color(0xFFA9745B),
+    "wine" to Color(0xFF9A3B3B)
 )
 
 /** 全局主文字颜色：快照状态，切换即时全局刷新 */
