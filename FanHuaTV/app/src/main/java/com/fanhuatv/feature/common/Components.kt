@@ -42,11 +42,13 @@ fun SubTopBar(title: String, onBack: () -> Unit, actions: @Composable RowScope.(
     )
 }
 
-/** 影片卡片：封面 + 标题 + 评分。showExtra=false 时隐藏评分角标（海报下方信息显示-仅标题） */
+/** 影片卡片：封面 + 标题 + 评分。showExtra=false 时隐藏评分角标（海报下方信息显示-仅标题）。
+ *  posterHeight 非空时封面用固定高度（首页按剩余空间反算，保证两排完整显示），否则按宽高比。 */
 @Composable
-fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, showExtra: Boolean = true, ratio: Float = 2f / 3f) {
+fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, showExtra: Boolean = true, ratio: Float = 2f / 3f, posterHeight: androidx.compose.ui.unit.Dp? = null) {
     Column(modifier = modifier.clickable(onClick = onClick)) {
-        Box(modifier = Modifier.fillMaxWidth().aspectRatio(ratio).clip(RoundedCornerShape(8.dp))) {
+        Box(modifier = (posterHeight?.let { Modifier.fillMaxWidth().height(it) }
+                ?: Modifier.fillMaxWidth().aspectRatio(ratio)).clip(RoundedCornerShape(8.dp))) {
             AsyncImage(
                 model = item.coverUrl,
                 contentDescription = item.displayTitle,
