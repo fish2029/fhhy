@@ -100,6 +100,9 @@ fun MineScreen(
                 NavRow(Icons.Filled.Sync, "源热更新", "填 PY 脚本远程地址，改源不发包") {
                     showHotUpdate = true
                 }
+                NavRow(Icons.Filled.BugReport, "AI 修源配置", "填 AI 接口地址和密钥，脚本报错一键让 AI 修") {
+                    showAiConfig = true
+                }
             }
 
             // ===== 播放 =====
@@ -109,13 +112,6 @@ fun MineScreen(
                 }
                 NavRow(Icons.Filled.Subtitles, "弹幕设置", "字号 / 速度 / 透明度 / 屏蔽词") {
                     showDanmaku = true
-                }
-            }
-
-            // ===== AI 修源 =====
-            GroupCard("AI 修源") {
-                NavRow(Icons.Filled.BugReport, "AI 修源配置", "填 AI 接口地址和密钥，脚本报错一键让 AI 修") {
-                    showAiConfig = true
                 }
             }
 
