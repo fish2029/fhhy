@@ -97,7 +97,7 @@ fun SearchScreen(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(50))
+                        .clip(com.fanhuatv.ui.theme.buttonShape())
                         .then(com.fanhuatv.ui.theme.buttonFill())
                         .padding(horizontal = 14.dp, vertical = 10.dp)
                 ) {
@@ -278,7 +278,7 @@ fun SearchScreen(
 private fun tagPill(label: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(50))
+            .clip(com.fanhuatv.ui.theme.buttonShape())
             .then(com.fanhuatv.ui.theme.buttonFill())
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 8.dp)
@@ -293,10 +293,10 @@ private fun siteChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(50))
+            .clip(com.fanhuatv.ui.theme.buttonShape())
             .then(
                 if (selected) com.fanhuatv.ui.theme.buttonFill()
-                else Modifier.background(if (com.fanhuatv.ui.theme.isOutlineButtonStyle()) Accent.copy(alpha = 0.12f) else Accent)
+                else Modifier.background(Accent)
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 10.dp)

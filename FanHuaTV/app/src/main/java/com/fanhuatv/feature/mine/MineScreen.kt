@@ -127,11 +127,11 @@ fun MineScreen(
                     DropdownItem("110%") { vm.updateUi { it.copy(fontScale = 110) }; close() }
                     DropdownItem("120%") { vm.updateUi { it.copy(fontScale = 120) }; close() }
                 }
-                // 按钮样式：全局按钮/胶囊的填充形态，切换即时生效
-                OptionRow(Icons.Filled.SmartButton, "按钮样式", current = buttonStyleLabel(ui.buttonStyle ?: "gradient")) { close ->
-                    DropdownItem("渐变胶囊") { vm.updateUi { it.copy(buttonStyle = "gradient") }; close() }
-                    DropdownItem("纯色圆角") { vm.updateUi { it.copy(buttonStyle = "solid") }; close() }
-                    DropdownItem("描边幽灵") { vm.updateUi { it.copy(buttonStyle = "outline") }; close() }
+                // 按钮样式：全局按钮/胶囊的圆角形态（方角/圆角/胶囊），切换即时生效
+                OptionRow(Icons.Filled.SmartButton, "按钮样式", current = buttonStyleLabel(ui.buttonStyle ?: "capsule")) { close ->
+                    DropdownItem("方角") { vm.updateUi { it.copy(buttonStyle = "square") }; close() }
+                    DropdownItem("圆角") { vm.updateUi { it.copy(buttonStyle = "rounded") }; close() }
+                    DropdownItem("胶囊") { vm.updateUi { it.copy(buttonStyle = "capsule") }; close() }
                 }
                 // 全局文字颜色：主文字颜色全局刷新，切换即时生效
                 OptionRow(Icons.Filled.TextFields, "全局文字颜色", current = textColorLabel(ui.textColor ?: "white")) { close ->
@@ -214,9 +214,9 @@ private fun bottomBarLabel(key: String): String = when (key) {
 }
 
 private fun buttonStyleLabel(key: String): String = when (key) {
-    "solid" -> "纯色圆角"
-    "outline" -> "描边幽灵"
-    else -> "渐变胶囊"
+    "square" -> "方角"
+    "rounded" -> "圆角"
+    else -> "胶囊"
 }
 
 private fun textColorLabel(key: String): String = when (key) {

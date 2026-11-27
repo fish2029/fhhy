@@ -59,7 +59,7 @@ fun SecurityScreen(
             Button(
                 onClick = { vm.recheck() },
                 colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                border = com.fanhuatv.ui.theme.materialButtonBorder(),
+                shape = com.fanhuatv.ui.theme.buttonShape(),
                 modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
             ) {
                 Text("重新校验", color = Color.Black)

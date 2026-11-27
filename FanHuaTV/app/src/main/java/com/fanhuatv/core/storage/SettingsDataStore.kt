@@ -55,7 +55,7 @@ data class UiSettings(
     val posterColumns: Int? = null,         // 海报密度（列数）2/3/4，null=3
     val posterInfo: String? = null,         // 海报下方信息显示：all=全部显示（评分+标题）| title=仅标题，null=all
     val continueWatching: Boolean? = null,  // 首页「继续观看」一栏，null=true
-    val buttonStyle: String? = null,        // 按钮样式：gradient=渐变胶囊 | solid=纯色圆角 | outline=描边幽灵，null=gradient
+    val buttonStyle: String? = null,        // 按钮样式：square=方角 | rounded=圆角 | capsule=胶囊，null=capsule
     val textColor: String? = null           // 全局文字颜色：white | warm | gold | blue | purple，null=white
 )
 

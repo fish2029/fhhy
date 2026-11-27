@@ -99,7 +99,7 @@ fun ConfigScreen(
                     modifier = Modifier.fillMaxWidth().then(com.fanhuatv.ui.theme.materialButtonBackground()),
                     enabled = !confirming,
                     colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                    border = com.fanhuatv.ui.theme.materialButtonBorder()
+                    shape = com.fanhuatv.ui.theme.buttonShape()
                 ) {
                     if (confirming) {
                         CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.Black, strokeWidth = 2.dp)
@@ -121,7 +121,6 @@ fun ConfigScreen(
                             inputUrl = ""
                         },
                         colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                        border = com.fanhuatv.ui.theme.materialButtonBorder(),
                         modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
                     ) {
                         Text("仅添加", color = Color.Black)
@@ -175,7 +174,6 @@ fun ConfigScreen(
                 Button(
                     onClick = { vm.setLive(liveInput, liveTemplate) },
                     colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                    border = com.fanhuatv.ui.theme.materialButtonBorder(),
                     modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
                 ) {
                     Text("保存直播源", color = Color.Black)

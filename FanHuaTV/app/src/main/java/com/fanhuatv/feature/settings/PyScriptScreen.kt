@@ -241,7 +241,7 @@ fun PyScriptScreen(
                     modifier = Modifier.fillMaxWidth().padding(12.dp).then(com.fanhuatv.ui.theme.materialButtonBackground()),
                     enabled = batchFiles.isNotEmpty(),
                     colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                    border = com.fanhuatv.ui.theme.materialButtonBorder()
+                    shape = com.fanhuatv.ui.theme.buttonShape()
                 ) {
                     Text("确认导入", color = Color.Black, fontWeight = FontWeight.Bold)
                 }
@@ -268,7 +268,6 @@ fun PyScriptScreen(
                                 vm.allFilesAccessIntent()?.let { allFilesLauncher.launch(it) }
                             },
                             colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                            border = com.fanhuatv.ui.theme.materialButtonBorder(),
                             modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
                         ) {
                             Text("去开启文件访问权限", color = Color.Black, fontSize = 12.sp)
@@ -283,7 +282,7 @@ fun PyScriptScreen(
                     onClick = { batchLauncher.launch(arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream", "*/*")) },
                     modifier = Modifier.fillMaxWidth().then(com.fanhuatv.ui.theme.materialButtonBackground()),
                     colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                    border = com.fanhuatv.ui.theme.materialButtonBorder()
+                    shape = com.fanhuatv.ui.theme.buttonShape()
                 ) {
                     Icon(Icons.Filled.FolderOpen, null, tint = Color.Black)
                     Spacer(Modifier.width(8.dp))
@@ -294,7 +293,7 @@ fun PyScriptScreen(
                     onClick = { dirLauncher.launch(null) },
                     modifier = Modifier.fillMaxWidth().then(com.fanhuatv.ui.theme.materialButtonBackground()),
                     colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                    border = com.fanhuatv.ui.theme.materialButtonBorder()
+                    shape = com.fanhuatv.ui.theme.buttonShape()
                 ) {
                     Icon(Icons.Filled.Folder, null, tint = Color.Black)
                     Spacer(Modifier.width(8.dp))

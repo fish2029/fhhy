@@ -260,7 +260,7 @@ internal fun HomeSiteSwitcher(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .clip(com.fanhuatv.ui.theme.buttonShape())
                 .then(com.fanhuatv.ui.theme.buttonFill())
                 .clickable { expanded = true }
         ) {
@@ -417,7 +417,7 @@ private fun CategoryBar(
                 Box(
                     modifier = Modifier
                         .width(itemWidth)
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(com.fanhuatv.ui.theme.buttonShape())
                         .then(com.fanhuatv.ui.theme.buttonFill())
                         .clickable { onSelect(category) },
                     contentAlignment = Alignment.Center
@@ -444,7 +444,7 @@ internal fun FloatingSearchBar(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
+            .clip(com.fanhuatv.ui.theme.buttonShape())
             .then(com.fanhuatv.ui.theme.buttonFill())
     ) {
         Row(

@@ -1,8 +1,8 @@
 package com.fanhuatv.ui.theme
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -36,8 +36,8 @@ private var accentKey by mutableStateOf("purple")
 /** 当前外观模式 key：快照状态，切换时全局背景深浅跟着变（三档均为深色系，避免白底白字） */
 private var themeKey by mutableStateOf("dark")
 
-/** 当前按钮样式 key：快照状态，gradient=渐变胶囊 / solid=纯色圆角 / outline=描边幽灵 */
-private var buttonStyleKey by mutableStateOf("gradient")
+/** 当前按钮样式 key：快照状态，capsule=胶囊（默认）/ rounded=圆角 / square=方角 */
+private var buttonStyleKey by mutableStateOf("capsule")
 
 /** 当前全局文字颜色 key：快照状态，改一处全局刷新 */
 private var textColorKey by mutableStateOf("white")
@@ -56,12 +56,12 @@ fun applyAccent(key: String?) {
     accentKey = if (key != null && ACCENT_SCHEMES.containsKey(key)) key else "purple"
 }
 
-/** 应用按钮样式（未知 key 回落渐变胶囊），MainActivity 启动及设置变更时调用 */
+/** 应用按钮样式（未知 key 回落胶囊），MainActivity 启动及设置变更时调用 */
 fun applyButtonStyle(key: String?) {
     buttonStyleKey = when (key) {
-        "solid" -> "solid"
-        "outline" -> "outline"
-        else -> "gradient"
+        "square" -> "square"
+        "rounded" -> "rounded"
+        else -> "capsule"
     }
 }
 
@@ -89,39 +89,31 @@ val TEXT_COLORS = mapOf(
 /** 全局主文字颜色：快照状态，切换即时全局刷新 */
 val TextPrimary: Color get() = TEXT_COLORS[textColorKey] ?: Color.White
 
-/** 当前按钮样式是否为描边幽灵（按钮内文字/图标需换强调色） */
-fun isOutlineButtonStyle(): Boolean = buttonStyleKey == "outline"
-
-/** 全局按钮填充：渐变胶囊（默认）/ 纯色圆角 / 描边幽灵，在 composition 中调用即可随设置刷新 */
-fun buttonFill(shape: Shape = androidx.compose.ui.graphics.RectangleShape): Modifier = when (buttonStyleKey) {
-    "solid" -> Modifier.background(Accent, shape)
-    "outline" -> Modifier.background(Color.Transparent, shape).border(1.dp, Accent.copy(alpha = 0.85f), shape)
-    else -> Modifier.background(Brush.horizontalGradient(AccentPill), shape)
+/** 全局按钮圆角形态：胶囊（默认）/ 圆角 / 方角，随「按钮样式」设置即时变化 */
+fun buttonShape(): Shape = when (buttonStyleKey) {
+    "square" -> androidx.compose.ui.graphics.RectangleShape
+    "rounded" -> RoundedCornerShape(10.dp)
+    else -> RoundedCornerShape(50)
 }
 
-/** 按钮内文字/图标颜色：描边样式用强调色，其余白色 */
-fun buttonTextColor(): Color = if (isOutlineButtonStyle()) Accent else Color.White
+/** 全局按钮填充：渐变底（与站源弹窗标题栏同一套），配合 buttonShape() 的裁剪使用 */
+fun buttonFill(): Modifier = Modifier.background(Brush.horizontalGradient(AccentPill))
 
-/** Material Button 配色：随「按钮样式」设置变化（渐变/纯色底配黑字，描边配强调色字） */
+/** 按钮内文字/图标颜色 */
+fun buttonTextColor(): Color = Color.White
+
+/** Material Button 配色：渐变底配黑字 */
 @Composable
 fun materialButtonColors() = ButtonDefaults.buttonColors(
     containerColor = Color.Transparent,
-    contentColor = if (isOutlineButtonStyle()) Accent else Color.Black
+    contentColor = Color.Black
 )
 
-/** Material Button 背景修饰符：渐变胶囊/纯色/描边统一走这里（按钮自身会裁剪圆角） */
-fun materialButtonBackground(): Modifier = when (buttonStyleKey) {
-    "solid" -> Modifier.background(Accent)
-    "outline" -> Modifier
-    else -> Modifier.background(Brush.horizontalGradient(AccentPill))
-}
+/** Material Button 背景修饰符（按钮自身按 buttonShape() 裁剪） */
+fun materialButtonBackground(): Modifier = Modifier.background(Brush.horizontalGradient(AccentPill))
 
-/** Material Button 描边：仅描边幽灵样式返回边框 */
-fun materialButtonBorder(): BorderStroke? =
-    if (isOutlineButtonStyle()) BorderStroke(1.dp, Accent.copy(alpha = 0.85f)) else null
-
-/** Material Button 文字颜色：渐变/纯色底配黑字，描边配强调色字 */
-fun materialButtonTextColor(): Color = if (isOutlineButtonStyle()) Accent else Color.Black
+/** Material Button 文字颜色：渐变底配黑字 */
+fun materialButtonTextColor(): Color = Color.Black
 
 /** 背景三档：浅色日间=亮灰调，跟随系统=默认深黑，深色夜间=纯黑（白字在三档下均可读） */
 val BgPrimary: Color get() = when (themeKey) {

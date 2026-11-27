@@ -182,8 +182,8 @@ fun DetailScreen(
                             }
                         }
                     },
-                    colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                    border = com.fanhuatv.ui.theme.materialButtonBorder(),
+                    shape = com.fanhuatv.ui.theme.buttonShape(),
+                                    colors = com.fanhuatv.ui.theme.materialButtonColors(),
                     modifier = Modifier.fillMaxWidth().then(com.fanhuatv.ui.theme.materialButtonBackground())
                 ) {
                     Text("立即播放", color = com.fanhuatv.ui.theme.materialButtonTextColor())
@@ -243,8 +243,8 @@ fun DetailScreen(
                                     LivePlayBus.play(url, "${cur.displayTitle} ${ep.name}", cur)
                                     navController.navigate(com.fanhuatv.navigation.Routes.PLAYER)
                                 } },
-                                colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                                border = com.fanhuatv.ui.theme.materialButtonBorder(),
+                                shape = com.fanhuatv.ui.theme.buttonShape(),
+                                    colors = com.fanhuatv.ui.theme.materialButtonColors(),
                                 modifier = Modifier.height(40.dp).then(com.fanhuatv.ui.theme.materialButtonBackground())
                             ) {
                                 Text(ep.name.ifBlank { "播放" }, fontSize = 12.sp)
@@ -275,8 +275,8 @@ fun DetailScreen(
                                 }.ifBlank { "站点" }
                                 Button(
                                     onClick = { vm.loadDetail(alt) },
+                                    shape = com.fanhuatv.ui.theme.buttonShape(),
                                     colors = com.fanhuatv.ui.theme.materialButtonColors(),
-                                    border = com.fanhuatv.ui.theme.materialButtonBorder(),
                                     modifier = Modifier.height(36.dp).then(com.fanhuatv.ui.theme.materialButtonBackground())
                                 ) {
                                     Text(altName, fontSize = 12.sp, maxLines = 1)
