@@ -160,7 +160,7 @@ fun FanHuaTheme(themeMode: String = "dark", content: @Composable () -> Unit) {
         colorScheme = if (dark) darkColors else lightColors,
         content = {
             // 全局默认文字色：所有没写颜色的 Text/Icon 一律跟 TextPrimary（与强调色同一套快照原理）
-            androidx.compose.material3.CompositionLocalProvider(
+            androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.material3.LocalContentColor provides TextPrimary
             ) {
                 content()
