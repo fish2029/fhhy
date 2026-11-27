@@ -56,7 +56,12 @@ fun SecurityScreen(
             SecurityItem("核心逻辑保护", "NDK + R8 混淆已启用")
 
             Spacer(Modifier.height(24.dp))
-            Button(onClick = { vm.recheck() }, colors = ButtonDefaults.buttonColors(containerColor = Accent)) {
+            Button(
+                onClick = { vm.recheck() },
+                colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                border = com.fanhuatv.ui.theme.materialButtonBorder(),
+                modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
+            ) {
                 Text("重新校验", color = Color.Black)
             }
         }

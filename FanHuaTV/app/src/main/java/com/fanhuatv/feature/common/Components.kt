@@ -36,8 +36,8 @@ fun SubTopBar(title: String, onBack: () -> Unit, actions: @Composable RowScope.(
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = com.fanhuatv.ui.theme.BgSurface,
-            titleContentColor = Color.White,
-            navigationIconContentColor = Color.White
+            titleContentColor = com.fanhuatv.ui.theme.TextPrimary,
+            navigationIconContentColor = com.fanhuatv.ui.theme.TextPrimary
         )
     )
 }

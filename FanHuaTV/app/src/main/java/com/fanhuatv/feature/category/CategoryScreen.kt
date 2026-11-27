@@ -138,7 +138,7 @@ fun CategoryScreen(
                 ScrollableTabRow(
                     selectedTabIndex = selectedIndex,
                     containerColor = com.fanhuatv.ui.theme.BgSurface,
-                    contentColor = Color.White,
+                    contentColor = com.fanhuatv.ui.theme.TextPrimary,
                     edgePadding = 8.dp,
                     indicator = { tabPositions ->
                         if (selectedIndex < tabPositions.size) {

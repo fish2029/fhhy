@@ -77,7 +77,7 @@ fun HistoryScreen(
                     title = { Text(if (favoriteOnly) "我的收藏" else "观看历史") },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = com.fanhuatv.ui.theme.BgSurface,
-                        titleContentColor = Color.White
+                        titleContentColor = com.fanhuatv.ui.theme.TextPrimary
                     )
                 )
             } else {

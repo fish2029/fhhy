@@ -370,10 +370,10 @@ internal fun HomeSiteSwitcher(
     }
 }
 
-/** 弹窗内的胶囊描边按钮，选中高亮 */
+/** 弹窗内的胶囊描边按钮，选中高亮（跟随全局按钮样式与文字颜色） */
 @Composable
 private fun SitePill(label: String, selected: Boolean, onClick: () -> Unit) {
-    val border = if (selected) Color(0xFFC08BFF) else Color(0x66B39BE8)
+    val border = if (selected) com.fanhuatv.ui.theme.Accent else Color(0x66B39BE8)
     Surface(
         shape = RoundedCornerShape(28.dp),
         color = Color.Transparent,
@@ -389,7 +389,7 @@ private fun SitePill(label: String, selected: Boolean, onClick: () -> Unit) {
         ) {
             Text(
                 text = label + if (selected) "  ✓" else "",
-                color = if (selected) Color(0xFFE4C6FF) else Color.White,
+                color = if (selected) com.fanhuatv.ui.theme.Accent else com.fanhuatv.ui.theme.TextPrimary,
                 fontSize = 14.sp
             )
         }

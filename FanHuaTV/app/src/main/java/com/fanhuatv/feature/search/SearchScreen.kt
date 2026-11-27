@@ -303,7 +303,7 @@ private fun siteChip(label: String, selected: Boolean, onClick: () -> Unit) {
     ) {
         Text(
             label,
-            color = if (selected) com.fanhuatv.ui.theme.buttonTextColor() else Color.White,
+            color = if (selected) com.fanhuatv.ui.theme.buttonTextColor() else com.fanhuatv.ui.theme.TextPrimary,
             fontSize = 13.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis

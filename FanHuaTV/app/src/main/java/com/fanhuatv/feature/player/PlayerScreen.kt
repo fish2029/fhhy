@@ -1063,7 +1063,7 @@ fun PlayerScreen(
                         ) {
                             Text(
                                 "${s}x" + if (s == currentSpeed) "  ✓" else "",
-                                color = if (s == currentSpeed) MaterialTheme.colorScheme.primary else Color.White
+                                color = if (s == currentSpeed) MaterialTheme.colorScheme.primary else com.fanhuatv.ui.theme.TextPrimary
                             )
                         }
                     }

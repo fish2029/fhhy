@@ -96,9 +96,10 @@ fun ConfigScreen(
                             confirming = false
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().then(com.fanhuatv.ui.theme.materialButtonBackground()),
                     enabled = !confirming,
-                    colors = ButtonDefaults.buttonColors(containerColor = Accent)
+                    colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                    border = com.fanhuatv.ui.theme.materialButtonBorder()
                 ) {
                     if (confirming) {
                         CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.Black, strokeWidth = 2.dp)
@@ -114,10 +115,15 @@ fun ConfigScreen(
                 )
                 Spacer(Modifier.height(10.dp))
                 Row {
-                    Button(onClick = {
-                        vm.addSource(inputUrl)
-                        inputUrl = ""
-                    }, colors = ButtonDefaults.buttonColors(containerColor = Accent)) {
+                    Button(
+                        onClick = {
+                            vm.addSource(inputUrl)
+                            inputUrl = ""
+                        },
+                        colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                        border = com.fanhuatv.ui.theme.materialButtonBorder(),
+                        modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
+                    ) {
                         Text("仅添加", color = Color.Black)
                     }
                     Spacer(Modifier.width(8.dp))
@@ -166,7 +172,12 @@ fun ConfigScreen(
                     )
                 )
                 Spacer(Modifier.height(8.dp))
-                Button(onClick = { vm.setLive(liveInput, liveTemplate) }, colors = ButtonDefaults.buttonColors(containerColor = Accent)) {
+                Button(
+                    onClick = { vm.setLive(liveInput, liveTemplate) },
+                    colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                    border = com.fanhuatv.ui.theme.materialButtonBorder(),
+                    modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
+                ) {
                     Text("保存直播源", color = Color.Black)
                 }
             }
@@ -204,7 +215,7 @@ private fun SourceRow(
             Column(Modifier.weight(1f)) {
                 Text(
                     "${source.name} ${if (isActive) "· 当前线路" else ""}",
-                    color = if (isActive) Accent else Color.White,
+                    color = if (isActive) Accent else com.fanhuatv.ui.theme.TextPrimary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )

@@ -175,7 +175,7 @@ private fun SettingsNavRow(icon: ImageVector, title: String, subtitle: String, o
         Icon(icon, null, tint = Accent)
         Spacer(Modifier.width(16.dp))
         Column(Modifier.weight(1f)) {
-            Text(title, color = androidx.compose.ui.graphics.Color.White, fontSize = 15.sp)
+            Text(title, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 15.sp)
             Text(subtitle, color = TextSecondary, fontSize = 11.sp)
         }
         Icon(Icons.Filled.ChevronRight, null, tint = TextSecondary)
@@ -194,7 +194,7 @@ private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onChang
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
-            Text(title, color = androidx.compose.ui.graphics.Color.White, fontSize = 15.sp)
+            Text(title, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 15.sp)
             if (subtitle.isNotBlank()) Text(subtitle, color = TextSecondary, fontSize = 11.sp)
         }
         Switch(checked = checked, onCheckedChange = onChange)
@@ -209,7 +209,7 @@ private fun OptionRow(title: String, current: String, options: List<String>, onS
         modifier = Modifier.fillMaxWidth().clickable { expanded = true }.padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(title, color = androidx.compose.ui.graphics.Color.White, fontSize = 15.sp, modifier = Modifier.weight(1f))
+        Text(title, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 15.sp, modifier = Modifier.weight(1f))
         Text(current, color = Accent, fontSize = 13.sp)
         Spacer(Modifier.width(4.dp))
         Icon(Icons.Filled.ArrowDropDown, null, tint = TextSecondary)
