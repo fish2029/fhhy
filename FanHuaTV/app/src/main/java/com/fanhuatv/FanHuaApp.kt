@@ -21,13 +21,21 @@ class FanHuaApp : Application(), ImageLoaderFactory {
         }
     }
 
-    // 全局图片加载器：豆瓣图链必须带豆瓣 Referer 才返回 200（否则 418 拒绝），
-    // 这里统一给 doubanio.com 的图片请求补来源头，其他站点请求原样放行
+    // 全局图片加载器：豆瓣图链必须带浏览器 UA + 豆瓣 Referer 才返回 200
+    // （空 UA 会 403，无 Referer 会 418），这里统一给 doubanio.com 的图片请求补头，其他站点原样放行
     private val imageHttp = OkHttpClient.Builder()
         .addInterceptor { chain ->
             val request = chain.request()
             if (request.url.host.endsWith("doubanio.com")) {
-                chain.proceed(request.newBuilder().header("Referer", "https://m.douban.com/").build())
+                chain.proceed(
+                    request.newBuilder()
+                        .header(
+                            "User-Agent",
+                            "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                        )
+                        .header("Referer", "https://m.douban.com/")
+                        .build()
+                )
             } else {
                 chain.proceed(request)
             }
