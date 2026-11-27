@@ -150,8 +150,10 @@ class PlayerViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> playResolved(result.data, speed)
                 else -> {
-                    // 解析失败：真直链才兜底，网页地址喂播放器只会黑屏/报错
-                    val fallback = rawUrl.takeIf { isDirectUrl(it) }
+                    // 解析失败：真直链才兜底，网页地址喂播放器只会黑屏/报错。
+                    // 必须带协议头才算直链——网盘文件名（如 xxx.mp4[385MB]__71）也含 .mp4，
+                    // 拿它兜底只会盖掉蜘蛛的真实报错，变成莫名其妙的「地址无法识别」
+                    val fallback = rawUrl.takeIf { isDirectUrl(it) && com.fanhuatv.core.util.UrlRules.isUniversalUrl(it) }
                     if (fallback != null) {
                         playResolved(fallback, speed)
                     } else {
