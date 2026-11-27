@@ -78,11 +78,7 @@ fun SearchScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFFA9A3C8), Color(0xFF9FB4D8), Color(0xFFF0B8C4))
-                    )
-                )
+                .background(com.fanhuatv.ui.theme.pageGradient())
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(Modifier.height(10.dp))

@@ -733,16 +733,12 @@ fun PlayerScreen(
             }
         }
 
-        // ── 竖屏内容区：照参考图复刻——渐变背景 + 两栏信息区 + 简介 + 选集网格 ──
+        // ── 竖屏内容区：渐变背景跟全局背景颜色走 + 两栏信息区 + 简介 + 选集网格 ──
         if (!isFullscreen) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(Color(0xFFA9A3C8), Color(0xFF9FB4D8), Color(0xFF4FB3C2))
-                        )
-                    )
+                    .background(com.fanhuatv.ui.theme.pageGradient())
                     .verticalScroll(rememberScrollState())
                     .padding(12.dp)
             ) {

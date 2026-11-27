@@ -202,6 +202,11 @@ val BG_COLORS = mapOf(
     "indigo" to Color(0xFF141433)
 )
 
+/** 页面渐变背景：从全局背景颜色派生（顶部略亮、往下回归背景色），搜索弹窗与播放详情页同一套 */
+fun pageGradient(): Brush = Brush.verticalGradient(
+    listOf(mixWhite(BgPrimary, 0.18f), mixWhite(BgPrimary, 0.08f), BgPrimary)
+)
+
 /** 次要文字：跟全局文字颜色同一色调，降透明度区分主次——改文字颜色时全屏一起变 */
 val TextSecondary: Color get() = TextPrimary.copy(alpha = 0.62f)
 
