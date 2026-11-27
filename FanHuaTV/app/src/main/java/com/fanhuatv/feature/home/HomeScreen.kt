@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -115,12 +116,14 @@ fun HomeScreen(
                 }
             }
             is Resource.Success -> {
+                // 「我的-导航首页」设置：大图横幅 / 海报密度 / 继续观看
+                val uiSettings by appVm.uiSettings.collectAsStateWithLifecycle()
                 Column(modifier = Modifier.fillMaxSize()) {
                     Spacer(Modifier.height(72.dp)) // 给悬浮搜索栏留位
 
-                    // 轮播 Banner
+                    // 轮播 Banner（可在「我的-导航首页-大图横幅」关闭）
                     val banners = config?.banners.orEmpty()
-                    if (banners.isNotEmpty()) {
+                    if (uiSettings.homeBanner != false && banners.isNotEmpty()) {
                         BannerCarousel(banners) { vodId ->
                             if (vodId.isNotBlank()) navController.navigate(Routes.detail(vodId))
                         }
@@ -145,6 +148,14 @@ fun HomeScreen(
                         Spacer(Modifier.height(4.dp))
                     }
 
+                    // 继续观看：有进度没看完的历史，点海报直接回详情续播（可在设置关闭）
+                    val continueList by appVm.continueWatching.collectAsStateWithLifecycle()
+                    if (uiSettings.continueWatching != false && continueList.isNotEmpty()) {
+                        ContinueWatchingRow(continueList) { vodId ->
+                            navController.navigate(Routes.detail(vodId))
+                        }
+                    }
+
                     SectionTitle("为你推荐", "查看全部") {
                         CategoryBus.select("", "")
                         navController.navigate(Routes.CATEGORY) {
@@ -163,22 +174,27 @@ fun HomeScreen(
                     }
                     com.fanhuatv.player.LivePlayBus.rememberItems(homeItems)
                     LazyVerticalGrid(
-                        columns = GridCells.Fixed(3),
+                        columns = GridCells.Fixed((uiSettings.posterColumns ?: 3).coerceIn(2, 4)),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(homeItems) { item ->
-                            VodCard(item = item, onClick = {
-                                // jar 配置项（带 action）：执行动作（弹扫码/输入框等），不进详情播放
-                                if (item.source == "jar" && item.action.isNotBlank()) {
-                                    appVm.runJarAction(item)
-                                } else {
-                                    com.fanhuatv.player.LivePlayBus.pendingDetail = item
-                                    navController.navigate(Routes.detail(item.id.ifBlank { item.title }))
+                            VodCard(
+                                item = item,
+                                // 海报下方信息显示：仅标题时隐藏评分角标
+                                showExtra = uiSettings.posterInfo != "title",
+                                onClick = {
+                                    // jar 配置项（带 action）：执行动作（弹扫码/输入框等），不进详情播放
+                                    if (item.source == "jar" && item.action.isNotBlank()) {
+                                        appVm.runJarAction(item)
+                                    } else {
+                                        com.fanhuatv.player.LivePlayBus.pendingDetail = item
+                                        navController.navigate(Routes.detail(item.id.ifBlank { item.title }))
+                                    }
                                 }
-                            })
+                            )
                         }
                     }
                 }
@@ -505,5 +521,74 @@ internal fun BannerCarousel(
                 )
             }
         }
+    }
+}
+
+/** 继续观看一栏：横向海报 + 进度条，点一下回详情续播（数据来自观看历史里有进度没看完的） */
+@Composable
+internal fun ContinueWatchingRow(
+    items: List<com.fanhuatv.core.storage.entity.HistoryEntity>,
+    onClick: (String) -> Unit
+) {
+    Column {
+        SectionTitle("继续观看")
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(items.size) { index ->
+                val history = items[index]
+                val fraction = if (history.duration > 0L)
+                    (history.progress.toFloat() / history.duration).coerceIn(0f, 1f)
+                else 0f
+                Column(
+                    modifier = Modifier
+                        .width(96.dp)
+                        .clickable { onClick(history.vodId) }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(132.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                    ) {
+                        AsyncImage(
+                            model = history.cover,
+                            contentDescription = history.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        history.title,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                    if (history.episode.isNotBlank()) {
+                        Text(
+                            history.episode,
+                            color = com.fanhuatv.ui.theme.TextSecondary,
+                            fontSize = 10.sp,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    }
+                    Spacer(Modifier.height(3.dp))
+                    LinearProgressIndicator(
+                        progress = { fraction },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                        color = com.fanhuatv.ui.theme.Accent,
+                        trackColor = Color.White.copy(alpha = 0.15f)
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
     }
 }

@@ -43,7 +43,18 @@ data class UiSettings(
     val themeMode: String = "system",       // system | dark | light
     val startPage: String = "home",         // home | live
     // 智能分类：开启后站源切换按特征自动归到 JAR内站点 / PY站点 / 音乐 / 短剧
-    val smartCategory: Boolean = false
+    val smartCategory: Boolean = false,
+    // ===== 「我的-主题色彩 / 导航首页」新增项 =====
+    // 可空是为了兼容旧 JSON：Gson 反序列化缺字段时填 null（绕过 Kotlin 默认值），
+    // 调用方用 elvis 取默认值，避免旧存档读出 0/null 导致缩放为 0 崩溃
+    val accent: String? = null,             // 强调色 key：purple | blue | cyan | pink | orange | green，null=默认紫
+    val fontScale: Int? = null,             // 界面缩放百分比 90/100/110/120，null=100
+    val bottomBarStyle: String? = null,     // 底栏形态：labeled=图标+文字 | icons=仅图标，null=labeled
+    val bottomBarAutoHide: Boolean? = null, // 底栏自动收起（下滑隐藏/上滑出现），null=false
+    val homeBanner: Boolean? = null,        // 首页大图横幅开关，null=true
+    val posterColumns: Int? = null,         // 海报密度（列数）2/3/4，null=3
+    val posterInfo: String? = null,         // 海报下方信息显示：all=全部显示（评分+标题）| title=仅标题，null=all
+    val continueWatching: Boolean? = null   // 首页「继续观看」一栏，null=true
 )
 
 /** 所有设置项的 DataStore 仓库 */

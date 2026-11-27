@@ -5,8 +5,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
@@ -69,15 +73,46 @@ fun AppNavHost(appVm: AppViewModel = hiltViewModel()) {
 
     val showBottomBar = currentRoute in Routes.TAB_ROUTES
 
+    // 底栏形态 / 自动收起：设置来自「我的-导航首页」
+    val uiSettings by appVm.uiSettings.collectAsStateWithLifecycle()
+    val autoHide = uiSettings.bottomBarAutoHide == true
+    val bottomBarVisible = remember { mutableStateOf(true) }
+    LaunchedEffect(autoHide) { if (!autoHide) bottomBarVisible.value = true }
+    // 嵌套滚动监听：内容上滑（y<0）收底栏，下滑（y>0）拉回来；关闭自动收起时恒显
+    val hideOnScroll = remember(autoHide) {
+        object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
+            override fun onPreScroll(
+                available: androidx.compose.ui.geometry.Offset,
+                source: androidx.compose.ui.input.nestedscroll.NestedScrollSource
+            ): androidx.compose.ui.geometry.Offset {
+                if (autoHide) {
+                    if (available.y < -4f) bottomBarVisible.value = false
+                    else if (available.y > 4f) bottomBarVisible.value = true
+                }
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+        }
+    }
+
     Scaffold(
         bottomBar = {
-            if (showBottomBar) BottomBar(navController, currentRoute)
+            if (showBottomBar) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = bottomBarVisible.value,
+                    enter = androidx.compose.animation.slideInVertically { it },
+                    exit = androidx.compose.animation.slideOutVertically { it }
+                ) {
+                    BottomBar(navController, currentRoute, showLabels = uiSettings.bottomBarStyle != "icons")
+                }
+            }
         }
     ) { padding ->
         NavHost(
             navController = navController,
             startDestination = Routes.HOME,
-            modifier = Modifier.padding(padding),
+            modifier = Modifier
+                .padding(padding)
+                .nestedScroll(hideOnScroll),
             enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(220)) },
             exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(220)) }
         ) {

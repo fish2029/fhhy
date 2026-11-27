@@ -20,9 +20,9 @@ import com.fanhuatv.ui.theme.Accent
 
 data class TabItem(val route: String, val labelRes: Int, val icon: ImageVector)
 
-/** 底部导航栏：固定在屏幕最底部，五个主 Tab。 */
+/** 底部导航栏：固定在屏幕最底部，五个主 Tab。showLabels=false 时仅显示图标（底栏形态-仅图标）。 */
 @Composable
-fun BottomBar(navController: NavController, currentRoute: String?) {
+fun BottomBar(navController: NavController, currentRoute: String?, showLabels: Boolean = true) {
     val tabs = listOf(
         TabItem(Routes.HOME, R.string.tab_home, Icons.Filled.Home),
         TabItem(Routes.CATEGORY, R.string.tab_category, Icons.Filled.GridView),
@@ -43,7 +43,9 @@ fun BottomBar(navController: NavController, currentRoute: String?) {
                     }
                 },
                 icon = { Icon(tab.icon, contentDescription = null) },
-                label = { Text(stringResource(tab.labelRes)) },
+                label = if (showLabels) {
+                    { Text(stringResource(tab.labelRes)) }
+                } else null,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Accent,
                     selectedTextColor = Accent,

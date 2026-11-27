@@ -57,6 +57,18 @@ class AppViewModel @Inject constructor(
         .map { it.smartCategory }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    /** 界面设置全集：底栏形态/自动收起、首页横幅/海报密度/继续观看等由各页面自行取用 */
+    val uiSettings: StateFlow<com.fanhuatv.core.storage.UiSettings> = settings.ui
+        .stateIn(viewModelScope, SharingStarted.Eagerly, com.fanhuatv.core.storage.UiSettings())
+
+    /** 继续观看：有进度且没看完的历史（最多取最近 20 部），首页一栏直接点回详情续播 */
+    val continueWatching: StateFlow<List<com.fanhuatv.core.storage.entity.HistoryEntity>> = repository.history
+        .map { list ->
+            list.filter { it.progress > 0L && (it.duration <= 0L || it.progress < it.duration) }
+                .take(20)
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     init {
         load()
     }

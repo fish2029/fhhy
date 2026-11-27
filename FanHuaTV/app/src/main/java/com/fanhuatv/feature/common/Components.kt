@@ -42,9 +42,9 @@ fun SubTopBar(title: String, onBack: () -> Unit, actions: @Composable RowScope.(
     )
 }
 
-/** 影片卡片：封面 + 标题 + 评分 */
+/** 影片卡片：封面 + 标题 + 评分。showExtra=false 时隐藏评分角标（海报下方信息显示-仅标题） */
 @Composable
-fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, showExtra: Boolean = true) {
     Card(
         modifier = modifier
             .aspectRatio(0.72f)
@@ -61,7 +61,7 @@ fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
                 error = androidx.compose.ui.graphics.painter.ColorPainter(BgCard),
                 placeholder = androidx.compose.ui.graphics.painter.ColorPainter(BgCard)
             )
-            if (item.displayRating.isNotBlank()) {
+            if (showExtra && item.displayRating.isNotBlank()) {
                 Surface(
                     color = Color.Black.copy(alpha = 0.7f),
                     shape = RoundedCornerShape(bottomEnd = 8.dp),
