@@ -42,7 +42,7 @@ fun AboutScreen(navController: NavController) {
                 }
             }
             Spacer(Modifier.height(12.dp))
-            Text("繁华TV", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text("繁华幻影手机版", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(
                 "v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})",
                 color = com.fanhuatv.ui.theme.TextSecondary, fontSize = 13.sp
@@ -89,7 +89,7 @@ fun AboutScreen(navController: NavController) {
             title = { Text(title) },
             text = {
                 Text(
-                    "繁华TV 是一款内容容器应用，本身不存储、不提供任何影视内容。" +
+                    "繁华幻影手机版是一款内容容器应用，本身不存储、不提供任何影视内容。" +
                     "所有内容由用户自行配置的第三方数据源提供。请遵守所在地区的法律法规，" +
                     "仅访问您有权访问的内容。应用不会收集您的个人信息。",
                     fontSize = 13.sp

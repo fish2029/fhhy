@@ -63,7 +63,7 @@ fun MineScreen(
                 }
                 Spacer(Modifier.width(16.dp))
                 Column {
-                    Text("繁华TV", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text("繁华幻影手机版", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     Text("影视 · 直播 一站式", color = TextSecondary, fontSize = 12.sp)
                 }
             }
