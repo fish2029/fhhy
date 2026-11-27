@@ -45,14 +45,8 @@ fun SubTopBar(title: String, onBack: () -> Unit, actions: @Composable RowScope.(
 /** 影片卡片：封面 + 标题 + 评分。showExtra=false 时隐藏评分角标（海报下方信息显示-仅标题） */
 @Composable
 fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, showExtra: Boolean = true) {
-    Card(
-        modifier = modifier
-            .aspectRatio(0.72f)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = BgCard)
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.clickable(onClick = onClick)) {
+        Box(modifier = Modifier.fillMaxWidth().aspectRatio(2f / 3f)) {
             AsyncImage(
                 model = item.coverUrl,
                 contentDescription = item.displayTitle,
@@ -82,22 +76,16 @@ fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, s
                     }
                 }
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(4.dp)
-            ) {
-                Text(
-                    item.displayTitle,
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.align(Alignment.BottomStart)
-                )
-            }
         }
+        // 标题独立于海报图下方，单行省略：任意列数下都不与图内文字冲突
+        Text(
+            item.displayTitle,
+            color = Color.White,
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 5.dp)
+        )
     }
 }
 
