@@ -168,9 +168,9 @@ fun HomeScreen(
                     com.fanhuatv.player.LivePlayBus.rememberItems(homeItems)
                     LazyVerticalGrid(
                         columns = GridCells.Fixed((uiSettings.posterColumns ?: 3).coerceIn(2, 4)),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(homeItems) { item ->

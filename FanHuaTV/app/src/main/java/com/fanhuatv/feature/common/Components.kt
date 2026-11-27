@@ -46,7 +46,7 @@ fun SubTopBar(title: String, onBack: () -> Unit, actions: @Composable RowScope.(
 @Composable
 fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, showExtra: Boolean = true) {
     Column(modifier = modifier.clickable(onClick = onClick)) {
-        Box(modifier = Modifier.fillMaxWidth().aspectRatio(2f / 3f)) {
+        Box(modifier = Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(8.dp))) {
             AsyncImage(
                 model = item.coverUrl,
                 contentDescription = item.displayTitle,
