@@ -167,14 +167,8 @@ fun HomeScreen(
                     }
                     com.fanhuatv.player.LivePlayBus.rememberItems(homeItems)
                     LazyVerticalGrid(
-                        // 列数自动判定：按设置密度换算最小卡宽，屏幕宽就多列、窄就少列，不再写死
-                        columns = GridCells.Adaptive(
-                            minSize = when (uiSettings.posterColumns ?: 3) {
-                                2 -> 150.dp
-                                4 -> 96.dp
-                                else -> 115.dp
-                            }
-                        ),
+                        // 选几列显示几列（自适应算列在窄屏会少一列，已回退）
+                        columns = GridCells.Fixed((uiSettings.posterColumns ?: 3).coerceIn(2, 4)),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
