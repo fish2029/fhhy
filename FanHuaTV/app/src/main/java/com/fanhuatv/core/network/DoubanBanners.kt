@@ -42,10 +42,19 @@ object DoubanBanners {
                     for (i in 0 until arr.length()) {
                         val entry = arr.optJSONObject(i) ?: continue
                         val pic = entry.optJSONObject("pic") ?: continue
-                        // large 是高清竖版海报；豆瓣图必须带豆瓣 Referer 才让加载（App 图片加载器统一补）
-                        val url = pic.optString("large").ifBlank { pic.optString("normal") }
                         val title = entry.optString("title")
-                        if (url.isBlank() || title.isBlank()) continue
+                        if (title.isBlank()) continue
+                        // 优先用条目自带剧照（横版，正适合轮播宽幅），/m/ 升级 /l/ 高清；
+                        // 没有剧照再退回竖版海报 large
+                        val photos = entry.optJSONArray("photos")
+                        var url = ""
+                        if (photos != null && photos.length() > 0) {
+                            url = photos.optString(0).replace("/photo/m/", "/photo/l/")
+                        }
+                        if (url.isBlank() || !url.startsWith("http")) {
+                            url = pic.optString("large").ifBlank { pic.optString("normal") }
+                        }
+                        if (url.isBlank() || !url.startsWith("http")) continue
                         val score = entry.optJSONObject("rating")?.optDouble("value") ?: 0.0
                         items.add(
                             BannerConfig(
