@@ -22,6 +22,9 @@ object DoubanBanners {
 
     private val UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 Mobile Safari/604.1"
 
+    /** 图床代理接口：豆瓣图床节点质量参差（部分节点部分网络不通），统一走代理取图，代理不通时 App 内自动退回直连 */
+    private const val IMAGE_PROXY = "https://www.libraryx.cn/proxy/image?url="
+
     /** 榜单集合：热播剧 + 热播电影，各取前几名合成轮播 */
     private val COLLECTIONS = listOf("tv_hot", "movie_hot")
 
@@ -59,7 +62,7 @@ object DoubanBanners {
                         items.add(
                             BannerConfig(
                                 title = title,
-                                image = url,
+                                image = IMAGE_PROXY + url,
                                 targetId = "",
                                 rating = if (score > 0) String.format("%.1f", score) else ""
                             )
