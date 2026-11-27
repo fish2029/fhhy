@@ -40,7 +40,7 @@ data class UiSettings(
     val homeRecommend: String = "douban",   // douban | site | history
     val searchDisplay: String = "thumb",    // thumb | text
     val historyLimit: Int = 50,
-    val themeMode: String = "system",       // system | dark | light
+    val themeMode: String = "dark",         // system | dark | light（全局恒深色渲染）
     val startPage: String = "home",         // home | live
     // 智能分类：开启后站源切换按特征自动归到 JAR内站点 / PY站点 / 音乐 / 短剧
     val smartCategory: Boolean = false,

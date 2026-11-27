@@ -1,6 +1,5 @@
 package com.fanhuatv.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -45,11 +44,8 @@ val TextSecondary = Color(0xFF9AA0AA)
 
 @Composable
 fun FanHuaTheme(themeMode: String = "dark", content: @Composable () -> Unit) {
-    val dark = when (themeMode) {
-        "dark" -> true
-        "light" -> false
-        else -> isSystemInDarkTheme()
-    }
+    // 全局恒定深色背景（用户要求：恢复默认，不要白色）——外观模式选项保留，但浅色/跟随系统也渲染深色
+    val dark = true
     // 读一次快照状态：强调色切换时整个主题跟着重建（Switch/按钮等 Material 组件同步换色）
     val accent = Accent
     val darkColors = darkColorScheme(
