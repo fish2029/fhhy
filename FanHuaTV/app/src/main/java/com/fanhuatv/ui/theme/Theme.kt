@@ -99,8 +99,8 @@ fun buttonShape(): Shape = when (buttonStyleKey) {
 /** 全局按钮填充：渐变底（与站源弹窗标题栏同一套），配合 buttonShape() 的裁剪使用 */
 fun buttonFill(): Modifier = Modifier.background(Brush.horizontalGradient(AccentPill))
 
-/** 按钮内文字/图标颜色 */
-fun buttonTextColor(): Color = Color.White
+/** 按钮内文字/图标颜色：跟全局文字颜色走（站源条/搜索栏/筛选胶囊同一套） */
+fun buttonTextColor(): Color = TextPrimary
 
 /** Material Button 配色：渐变底配黑字 */
 @Composable
