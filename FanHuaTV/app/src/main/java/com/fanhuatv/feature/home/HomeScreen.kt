@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -166,23 +167,33 @@ fun HomeScreen(
                         )
                     }
                     com.fanhuatv.player.LivePlayBus.rememberItems(homeItems)
-                    LazyVerticalGrid(
-                        // 选几列显示几列（自适应算列在窄屏会少一列，已回退）
-                        columns = GridCells.Fixed((uiSettings.posterColumns ?: 3).coerceIn(2, 4)),
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(homeItems) { item ->
-                            VodCard(
-                                item = item,
-                                // 卡片宽高比按列数动态计算：列少卡大用标准 2:3，列多卡窄稍高一点，均铺满列宽
-                                ratio = when ((uiSettings.posterColumns ?: 3).coerceIn(2, 4)) {
-                                    2 -> 2f / 3f
-                                    3 -> 0.68f
-                                    else -> 0.72f
-                                },
+                    // 网格容器高度按列数联动计算：两行完整卡片（海报+评分+标题）+ 行间距，刚好放下两行
+                    val gridColumns = (uiSettings.posterColumns ?: 3).coerceIn(2, 4)
+                    val gridRatio = when (gridColumns) {
+                        2 -> 2f / 3f
+                        3 -> 0.68f
+                        else -> 0.72f
+                    }
+                    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                        // 单卡宽度 = 可用宽度 - 上下左右 contentPadding(8dp) - 列间距，再均分
+                        val cardWidth = (maxWidth - 8.dp - 4.dp * (gridColumns - 1)) / gridColumns
+                        // 卡片完整高度 = 海报高度 + 标题区（12sp 单行文字 + 5dp 上边距 + 余量）
+                        val cardHeight = cardWidth / gridRatio + 24.dp
+                        // 总高度 = 两行卡片 + 行间距(10dp) + 网格纵向 contentPadding(8dp)
+                        val gridHeight = cardHeight * 2 + 10.dp + 8.dp
+                        LazyVerticalGrid(
+                            // 选几列显示几列（自适应算列在窄屏会少一列，已回退）
+                            columns = GridCells.Fixed(gridColumns),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.height(gridHeight).clipToBounds()
+                        ) {
+                            items(homeItems) { item ->
+                                VodCard(
+                                    item = item,
+                                    // 卡片宽高比按列数动态计算：列少卡大用标准 2:3，列多卡窄稍高一点，均铺满列宽
+                                    ratio = gridRatio,
                                 // 海报下方信息显示：仅标题时隐藏评分角标
                                 showExtra = uiSettings.posterInfo != "title",
                                 onClick = {
@@ -195,6 +206,7 @@ fun HomeScreen(
                                     }
                                 }
                             )
+                        }
                         }
                     }
                 }

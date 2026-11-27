@@ -609,6 +609,17 @@ class MainRepository @Inject constructor(
                 lower.contains(".aac") || lower.contains(".wav") || lower.contains(".ogg")
     }
 
+    /** 网盘线路按 TVBox 惯例以线路名通用识别（夸克/UC/迅雷/天翼/115/123/阿里/移动等），
+     *  不写死任何站点：网盘线路蜘蛛返回的就是直链，不走解析 */
+    private fun isPanFlag(flag: String): Boolean {
+        if (flag.isBlank()) return false
+        val lower = flag.lowercase()
+        return listOf(
+            "网盘", "云盘", "夸克", "quark", "uc云", "uc网盘", "迅雷", "thunder",
+            "天翼", "阿里", "aliyun", "移动云", "和彩云", "沃家", "联通云"
+        ).any { lower.contains(it) }
+    }
+
     /** 仅用指定源刷新（设置页测试用） */
     suspend fun testSource(source: ConfigSource): Resource<String> {
         return try {
@@ -961,7 +972,11 @@ class MainRepository @Inject constructor(
                 val looksLikeStream = isDirectVideoUrl(playUrl) ||
                         playUrl.contains("m3u8", ignoreCase = true) ||
                         playUrl.contains("m3u", ignoreCase = true)
-                val needWebSniff = parsed.needParse && !looksLikeStream
+                // 网盘线路（夸克/UC/迅雷/天翼/115/123/阿里等，按线路名通用识别）：
+                // 蜘蛛 playerContent 返回的就是直链，不走 jx 接口也不进网页嗅探——
+                // 嗅探只会污染一次性 token，把能直连播放的网盘线路误报成"线路失效"
+                val isPanLine = isPanFlag(flagFirst)
+                val needWebSniff = parsed.needParse && !looksLikeStream && !isPanLine
                 if (needWebSniff) {
                     val jxHit = withTimeoutOrNull(10_000) {
                         com.fanhuatv.player.JxResolver.resolve(playUrl, flagFirst, currentParses, currentFlags)
