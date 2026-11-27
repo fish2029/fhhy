@@ -288,13 +288,13 @@ private fun tagPill(label: String, onClick: () -> Unit) {
     }
 }
 
-/** 结果页左栏站点胶囊：默认紫色填充，选中深紫 + 浅紫描边，占满左栏宽度 */
+/** 结果页左栏站点胶囊：胶囊形，默认紫色填充，选中深紫 + 浅紫描边，占满左栏宽度 */
 @Composable
 private fun siteChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(50))
             .background(if (selected) AccentDeep else Accent)
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 10.dp)
