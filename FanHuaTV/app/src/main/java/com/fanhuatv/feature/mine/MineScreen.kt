@@ -128,7 +128,7 @@ fun MineScreen(
                     DropdownItem("120%") { vm.updateUi { it.copy(fontScale = 120) }; close() }
                 }
                 Text(
-                    "切换日夜外观或强调色会即时生效，不会中断浏览位置；开启「跟随系统」，可随系统自动切换。",
+                    "三档外观即时切换：浅色日间为亮灰调，跟随系统为默认深黑，深色夜间为纯黑；切换不会中断浏览位置。",
                     color = TextSecondary,
                     fontSize = 11.sp,
                     lineHeight = 16.sp,

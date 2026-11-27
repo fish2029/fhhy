@@ -25,6 +25,18 @@ val ACCENT_SCHEMES = mapOf(
 /** 当前强调色 key：快照状态，改一处全局刷新（所有直接引用 Accent/AccentDeep/AccentPill 的地方自动生效） */
 private var accentKey by mutableStateOf("purple")
 
+/** 当前外观模式 key：快照状态，切换时全局背景深浅跟着变（三档均为深色系，避免白底白字） */
+private var themeKey by mutableStateOf("dark")
+
+/** 应用外观模式（未知 key 回落深色），MainActivity 启动及设置变更时调用 */
+fun applyThemeMode(key: String?) {
+    themeKey = when (key) {
+        "light" -> "light"
+        "system" -> "system"
+        else -> "dark"
+    }
+}
+
 /** 应用强调色（未知 key 回落默认紫），MainActivity 启动及设置变更时调用 */
 fun applyAccent(key: String?) {
     accentKey = if (key != null && ACCENT_SCHEMES.containsKey(key)) key else "purple"
@@ -37,10 +49,21 @@ val AccentDeep: Color get() = (ACCENT_SCHEMES[accentKey] ?: ACCENT_SCHEMES.getVa
 /** 全局按钮/胶囊统一的渐变（与站源弹窗标题栏同一套） */
 val AccentPill: List<Color> get() = (ACCENT_SCHEMES[accentKey] ?: ACCENT_SCHEMES.getValue("purple")).pill
 
-val BgPrimary = Color(0xFF0B0C10)
-val BgSurface = Color(0xFF16181D)
-val BgCard = Color(0xFF1F2229)
-val TextSecondary = Color(0xFF9AA0AA)
+/** 背景三档：浅色日间=亮灰调，跟随系统=默认深黑，深色夜间=纯黑（白字在三档下均可读） */
+val BgPrimary: Color get() = when (themeKey) {
+    "light" -> Color(0xFF1E2128)
+    "system" -> Color(0xFF0B0C10)
+    else -> Color(0xFF000000)
+}
+val BgSurface: Color get() = when (themeKey) {
+    "light" -> Color(0xFF262A33)
+    else -> Color(0xFF16181D)
+}
+val BgCard: Color get() = when (themeKey) {
+    "light" -> Color(0xFF2E323D)
+    else -> Color(0xFF1F2229)
+}
+val TextSecondary: Color get() = if (themeKey == "light") Color(0xFFA8AEB8) else Color(0xFF9AA0AA)
 
 @Composable
 fun FanHuaTheme(themeMode: String = "dark", content: @Composable () -> Unit) {
