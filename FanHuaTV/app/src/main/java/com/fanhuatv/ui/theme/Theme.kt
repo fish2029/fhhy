@@ -129,7 +129,8 @@ val BgCard: Color get() = when (themeKey) {
     "light" -> Color(0xFF2E323D)
     else -> Color(0xFF1F2229)
 }
-val TextSecondary: Color get() = if (themeKey == "light") Color(0xFFA8AEB8) else Color(0xFF9AA0AA)
+/** 次要文字：跟全局文字颜色同一色调，降透明度区分主次——改文字颜色时全屏一起变 */
+val TextSecondary: Color get() = TextPrimary.copy(alpha = 0.62f)
 
 @Composable
 fun FanHuaTheme(themeMode: String = "dark", content: @Composable () -> Unit) {
@@ -157,6 +158,13 @@ fun FanHuaTheme(themeMode: String = "dark", content: @Composable () -> Unit) {
     )
     MaterialTheme(
         colorScheme = if (dark) darkColors else lightColors,
-        content = content
+        content = {
+            // 全局默认文字色：所有没写颜色的 Text/Icon 一律跟 TextPrimary（与强调色同一套快照原理）
+            androidx.compose.material3.CompositionLocalProvider(
+                androidx.compose.material3.LocalContentColor provides TextPrimary
+            ) {
+                content()
+            }
+        }
     )
 }

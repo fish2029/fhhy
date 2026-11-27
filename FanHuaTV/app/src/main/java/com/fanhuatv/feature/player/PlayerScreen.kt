@@ -853,7 +853,7 @@ fun PlayerScreen(
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .clip(RoundedCornerShape(50))
+                                            .clip(com.fanhuatv.ui.theme.buttonShape())
                                             .background(if (line == selectedLine) AccentDeep else Accent)
                                             .clickable { selectedLine = line }
                                             .padding(vertical = 8.dp),
@@ -909,7 +909,7 @@ fun PlayerScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .height(42.dp)
-                                            .clip(RoundedCornerShape(50))
+                                            .clip(com.fanhuatv.ui.theme.buttonShape())
                                             .background(if (selected) AccentDeep else Accent)
                                             .clickable {
                                                 currentUrl = ep.playableUrl
@@ -1100,7 +1100,7 @@ fun PlayerScreen(
                                             Box(
                                                 modifier = Modifier
                                                     .weight(1f)
-                                                    .clip(RoundedCornerShape(50))
+                                                    .clip(com.fanhuatv.ui.theme.buttonShape())
                                                     .background(if (line == dialogLine) AccentDeep else Accent)
                                                     .clickable { dialogLine = line }
                                                     .padding(vertical = 8.dp),
@@ -1142,7 +1142,7 @@ fun PlayerScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .height(42.dp)
-                                            .clip(RoundedCornerShape(50))
+                                            .clip(com.fanhuatv.ui.theme.buttonShape())
                                             .background(if (selected) AccentDeep else Accent)
                                             .clickable {
                                                 // 与选集网格完全一致：更新 currentUrl + LivePlayBus + 解析播放
