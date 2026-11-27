@@ -169,7 +169,7 @@ fun HomeScreen(
                     LazyVerticalGrid(
                         // 选几列显示几列（自适应算列在窄屏会少一列，已回退）
                         columns = GridCells.Fixed((uiSettings.posterColumns ?: 3).coerceIn(2, 4)),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.fillMaxSize()
@@ -177,6 +177,12 @@ fun HomeScreen(
                         items(homeItems) { item ->
                             VodCard(
                                 item = item,
+                                // 卡片宽高比按列数动态计算：列少卡大用标准 2:3，列多卡窄稍高一点，均铺满列宽
+                                ratio = when ((uiSettings.posterColumns ?: 3).coerceIn(2, 4)) {
+                                    2 -> 2f / 3f
+                                    3 -> 0.68f
+                                    else -> 0.72f
+                                },
                                 // 海报下方信息显示：仅标题时隐藏评分角标
                                 showExtra = uiSettings.posterInfo != "title",
                                 onClick = {

@@ -44,9 +44,9 @@ fun SubTopBar(title: String, onBack: () -> Unit, actions: @Composable RowScope.(
 
 /** 影片卡片：封面 + 标题 + 评分。showExtra=false 时隐藏评分角标（海报下方信息显示-仅标题） */
 @Composable
-fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, showExtra: Boolean = true) {
+fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, showExtra: Boolean = true, ratio: Float = 2f / 3f) {
     Column(modifier = modifier.clickable(onClick = onClick)) {
-        Box(modifier = Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(8.dp))) {
+        Box(modifier = Modifier.fillMaxWidth().aspectRatio(ratio).clip(RoundedCornerShape(8.dp))) {
             AsyncImage(
                 model = item.coverUrl,
                 contentDescription = item.displayTitle,
