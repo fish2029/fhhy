@@ -29,24 +29,28 @@ private fun lighten(c: Color, f: Float = 1.25f) = Color(
 /** 由基准色程序生成强调色方案：deep 加深一档，pill 用一深一浅做渐变 */
 private fun accentFrom(base: Color) = AccentScheme(base, darken(base), listOf(darken(base, 0.9f), lighten(base)))
 
-/** 可选全局文字颜色（「我的-主题色彩-全局文字颜色」），24 档全色系，深底可读 */
+/** 可选全局文字颜色（「我的-主题色彩-全局文字颜色」），28 档全色系（含纯红/纯黄/纯绿/纯蓝），深底可读 */
 val TEXT_COLORS = mapOf(
     "white" to Color(0xFFFFFFFF),
     "silver" to Color(0xFFCED4DA),
     "red" to Color(0xFFFF5C5C),
+    "purered" to Color(0xFFFF0000),
     "crimson" to Color(0xFFE03131),
     "rose" to Color(0xFFF06595),
     "orange" to Color(0xFFFF9F43),
     "tangerine" to Color(0xFFF76707),
     "yellow" to Color(0xFFFCC419),
+    "pureyellow" to Color(0xFFFFFF00),
     "lemon" to Color(0xFFFFE066),
     "lime" to Color(0xFFA9E34B),
     "green" to Color(0xFF51CF66),
+    "puregreen" to Color(0xFF00FF00),
     "forest" to Color(0xFF2F9E44),
     "cyan" to Color(0xFF22B8CF),
     "teal" to Color(0xFF0CA678),
     "sky" to Color(0xFF339AF0),
     "azure" to Color(0xFF1C7ED6),
+    "pureblue" to Color(0xFF0000FF),
     "indigo" to Color(0xFF5C7CFA),
     "purple" to Color(0xFF9775FA),
     "violet" to Color(0xFF7048E8),
