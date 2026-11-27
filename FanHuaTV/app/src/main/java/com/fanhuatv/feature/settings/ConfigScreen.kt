@@ -120,15 +120,19 @@ fun ConfigScreen(
                             vm.addSource(inputUrl)
                             inputUrl = ""
                         },
+                        shape = com.fanhuatv.ui.theme.buttonShape(),
                         colors = com.fanhuatv.ui.theme.materialButtonColors(),
                         modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
                     ) {
                         Text("仅添加", color = Color.Black)
                     }
                     Spacer(Modifier.width(8.dp))
-                    OutlinedButton(onClick = {
-                        Toast.makeText(context, "扫码推送：请用手机扫描配置平台二维码后粘贴地址", Toast.LENGTH_SHORT).show()
-                    }) {
+                    OutlinedButton(
+                        onClick = {
+                            Toast.makeText(context, "扫码推送：请用手机扫描配置平台二维码后粘贴地址", Toast.LENGTH_SHORT).show()
+                        },
+                        shape = com.fanhuatv.ui.theme.buttonShape()
+                    ) {
                         Text("扫码推送")
                     }
                 }

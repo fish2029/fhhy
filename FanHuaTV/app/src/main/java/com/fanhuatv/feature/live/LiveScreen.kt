@@ -57,8 +57,13 @@ fun LiveScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("尚未配置直播源", color = com.fanhuatv.ui.theme.TextSecondary)
                     Spacer(Modifier.height(8.dp))
-                    Button(onClick = { navController.navigate(com.fanhuatv.navigation.Routes.CONFIG) }) {
-                        Text("去配置")
+                    Button(
+                        onClick = { navController.navigate(com.fanhuatv.navigation.Routes.CONFIG) },
+                        shape = com.fanhuatv.ui.theme.buttonShape(),
+                        colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                        modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
+                    ) {
+                        Text("去配置", color = com.fanhuatv.ui.theme.materialButtonTextColor())
                     }
                 }
             }
@@ -72,7 +77,12 @@ fun LiveScreen(
             is Resource.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(state.message, color = com.fanhuatv.ui.theme.TextPrimary)
-                    Button(onClick = { vm.loadChannels() }) { Text("重试") }
+                    Button(
+                        onClick = { vm.loadChannels() },
+                        shape = com.fanhuatv.ui.theme.buttonShape(),
+                        colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                        modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
+                    ) { Text("重试", color = com.fanhuatv.ui.theme.materialButtonTextColor()) }
                 }
             }
             is Resource.Success -> {

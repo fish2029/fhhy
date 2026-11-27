@@ -110,7 +110,12 @@ fun HomeScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text((status as Resource.Error).message, color = com.fanhuatv.ui.theme.TextPrimary)
                     Spacer(Modifier.height(12.dp))
-                    Button(onClick = { appVm.load() }) { Text("重试") }
+                    Button(
+                        onClick = { appVm.load() },
+                        shape = com.fanhuatv.ui.theme.buttonShape(),
+                        colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                        modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
+                    ) { Text("重试", color = com.fanhuatv.ui.theme.materialButtonTextColor()) }
                     TextButton(onClick = { navController.navigate(Routes.CONFIG) }) {
                         Text("去配置接口")
                     }

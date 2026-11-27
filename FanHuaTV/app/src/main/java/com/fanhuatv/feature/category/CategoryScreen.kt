@@ -127,7 +127,12 @@ fun CategoryScreen(
                         Spacer(Modifier.height(6.dp))
                         Text(diagnostic, color = com.fanhuatv.ui.theme.TextSecondary, fontSize = 11.sp, textAlign = TextAlign.Center)
                         Spacer(Modifier.height(10.dp))
-                        Button(onClick = { appVm.load() }) { Text("重新加载") }
+                        Button(
+                            onClick = { appVm.load() },
+                            shape = com.fanhuatv.ui.theme.buttonShape(),
+                            colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                            modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
+                        ) { Text("重新加载", color = com.fanhuatv.ui.theme.materialButtonTextColor()) }
                         TextButton(onClick = { navController.navigate(Routes.PY_SCRIPT) }) {
                             Text("去导入 PY 脚本", fontSize = 12.sp)
                         }

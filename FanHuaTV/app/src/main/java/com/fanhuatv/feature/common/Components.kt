@@ -70,7 +70,7 @@ fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, s
                         Icon(
                             Icons.Filled.Star,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = com.fanhuatv.ui.theme.TextPrimary,
                             modifier = Modifier.size(12.dp)
                         )
                         Spacer(Modifier.width(2.dp))

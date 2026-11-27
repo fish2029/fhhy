@@ -103,7 +103,7 @@ fun DetailScreen(
                         Icon(
                             if (isFav) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             contentDescription = "收藏",
-                            tint = if (isFav) Color.Red else Color.White
+                            tint = if (isFav) Color.Red else com.fanhuatv.ui.theme.TextPrimary
                         )
                     }
                 }
@@ -207,7 +207,7 @@ fun DetailScreen(
                                         Box(
                                             modifier = Modifier
                                                 .weight(1f)
-                                                .clip(RoundedCornerShape(50))
+                                                .clip(com.fanhuatv.ui.theme.buttonShape())
                                                 .background(if (line == selectedLine) com.fanhuatv.ui.theme.AccentDeep else com.fanhuatv.ui.theme.Accent)
                                                 .clickable { selectedLine = line }
                                                 .padding(vertical = 8.dp),

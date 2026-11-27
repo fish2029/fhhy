@@ -374,7 +374,12 @@ fun PyScriptScreen(
             title = { Text("重新导入更新：${script.name}") },
             text = {
                 Column {
-                    Button(onClick = { reimportLauncher.launch(arrayOf("*/*")) }) { Text("选择新的 .py 文件") }
+                    Button(
+                        onClick = { reimportLauncher.launch(arrayOf("*/*")) },
+                        shape = com.fanhuatv.ui.theme.buttonShape(),
+                        colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                        modifier = Modifier.then(com.fanhuatv.ui.theme.materialButtonBackground())
+                    ) { Text("选择新的 .py 文件", color = com.fanhuatv.ui.theme.materialButtonTextColor()) }
                     Spacer(Modifier.height(8.dp))
                     Text(if (content.isBlank()) "请先选择文件" else "已读取 ${content.length} 字符", color = TextSecondary)
                 }

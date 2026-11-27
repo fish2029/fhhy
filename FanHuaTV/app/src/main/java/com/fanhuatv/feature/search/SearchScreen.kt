@@ -92,7 +92,7 @@ fun SearchScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "返回", tint = Color.White)
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "返回", tint = com.fanhuatv.ui.theme.TextPrimary)
                 }
                 Box(
                     modifier = Modifier
@@ -132,7 +132,7 @@ fun SearchScreen(
                     }
                 }
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Filled.Home, contentDescription = "首页", tint = Color.White)
+                    Icon(Icons.Filled.Home, contentDescription = "首页", tint = com.fanhuatv.ui.theme.TextPrimary)
                 }
             }
 
@@ -339,7 +339,7 @@ private fun ResultCard(item: VodItem, sourceName: String, navController: NavCont
                 Icon(
                     androidx.compose.material.icons.Icons.Filled.Image,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.5f),
+                    tint = com.fanhuatv.ui.theme.TextPrimary.copy(alpha = 0.5f),
                     modifier = Modifier.align(Alignment.Center).size(36.dp)
                 )
             }
