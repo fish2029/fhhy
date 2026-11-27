@@ -81,7 +81,7 @@ object BilibiliDanmaku {
         val data = obj.getAsJsonObject("data") ?: return 0
         val epNum = Regex("\\d+").findAll(episode).lastOrNull()?.value?.toIntOrNull() ?: 0
         val pages = data.getAsJsonArray("pages")
-        if (!pages.isNullOrEmpty() && epNum > 0) {
+        if (pages != null && pages.size() > 0 && epNum > 0) {
             // 分 P 的 part 名带集数（「第03集 xxx」/「03」）时优先命中
             for (el in pages) {
                 val p = el.asJsonObject

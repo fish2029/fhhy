@@ -996,8 +996,8 @@ fun PlayerScreen(
                     Text("${currentSpeed}x", color = com.fanhuatv.ui.theme.TextPrimary, fontWeight = FontWeight.Bold)
                 }
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    IconButton(onClick = { enterPip() }) {
-                        Icon(Icons.Filled.PictureInPicture, contentDescription = "悬浮小窗", tint = Color.White)
+                    TextButton(onClick = { enterPip() }) {
+                        Text("小窗", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 13.sp)
                     }
                 }
                 IconButton(onClick = {
