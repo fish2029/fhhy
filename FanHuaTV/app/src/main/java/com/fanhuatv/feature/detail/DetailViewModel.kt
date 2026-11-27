@@ -121,8 +121,10 @@ class DetailViewModel @Inject constructor(
             }
             val url = when (result) {
                 is Resource.Success -> result.data
-                // 解析失败：只有真直链才兜底，网页地址喂播放器会黑屏/解容器失败
-                else -> fallback.takeIf { looksDirect(it) }.orEmpty()
+                // 解析失败：只有带协议头的真直链才兜底，网页地址喂播放器会黑屏/解容器失败。
+                // 网盘文件名（xxx.mp4[大小]__编号）也含 .mp4，拿它兜底会把蜘蛛的真实报错
+                // 盖成莫名其妙的「地址无法识别」——必须带 :// 才算数
+                else -> fallback.takeIf { looksDirect(it) && com.fanhuatv.core.util.UrlRules.isUniversalUrl(it) }.orEmpty()
             }
             if (url.isBlank()) {
                 _notice.value = (result as? Resource.Error)?.message?.takeIf { it.isNotBlank() }
@@ -157,9 +159,10 @@ class DetailViewModel @Inject constructor(
                     .getOrNull()
             }
             val resolved = (result as? Resource.Success)?.data.orEmpty()
+            // 兜底同样必须带协议头：网盘文件名含 .mp4 不算直链，别拿它盖住真实报错
             val finalUrl = resolved.ifBlank {
-                firstEp?.playableUrl.orEmpty().takeIf { looksDirect(it) }.orEmpty()
-                    .ifBlank { detail.playUrl.takeIf { looksDirect(it) }.orEmpty() }
+                firstEp?.playableUrl.orEmpty().takeIf { looksDirect(it) && com.fanhuatv.core.util.UrlRules.isUniversalUrl(it) }.orEmpty()
+                    .ifBlank { detail.playUrl.takeIf { looksDirect(it) && com.fanhuatv.core.util.UrlRules.isUniversalUrl(it) }.orEmpty() }
             }
             if (finalUrl.isNotBlank()) {
                 _notice.value = ""
