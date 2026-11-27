@@ -526,7 +526,7 @@ fun PlayerScreen(
                 ) {
                     Text(
                         lyricLines.getOrNull(curIdx)?.text ?: "",
-                        color = Color.White,
+                        color = com.fanhuatv.ui.theme.TextPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         lineHeight = 25.sp,
@@ -545,7 +545,7 @@ fun PlayerScreen(
                         Spacer(Modifier.height(4.dp))
                         Text(
                             nextLine.text,
-                            color = Color.White.copy(alpha = 0.75f),
+                            color = com.fanhuatv.ui.theme.TextPrimary.copy(alpha = 0.75f),
                             fontSize = 14.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -636,7 +636,7 @@ fun PlayerScreen(
                         ) {
                             Text(
                                 "$videoW x $videoH",
-                                color = Color.White.copy(alpha = 0.9f),
+                                color = com.fanhuatv.ui.theme.TextPrimary.copy(alpha = 0.9f),
                                 fontSize = 11.sp,
                                 modifier = Modifier.padding(end = 8.dp, bottom = 2.dp)
                             )
@@ -646,7 +646,7 @@ fun PlayerScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             formatTime(posMs),
-                            color = Color.White,
+                            color = com.fanhuatv.ui.theme.TextPrimary,
                             fontSize = 11.sp,
                             modifier = Modifier.padding(start = 8.dp)
                         )
@@ -673,7 +673,7 @@ fun PlayerScreen(
                         )
                         Text(
                             formatTime(durMs),
-                            color = Color.White,
+                            color = com.fanhuatv.ui.theme.TextPrimary,
                             fontSize = 11.sp,
                             modifier = Modifier.padding(end = 8.dp)
                         )
@@ -777,7 +777,7 @@ fun PlayerScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 title,
-                                color = Color.White,
+                                color = com.fanhuatv.ui.theme.TextPrimary,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
@@ -787,7 +787,7 @@ fun PlayerScreen(
                             if (item?.episodes.orEmpty().isNotEmpty()) {
                                 Text(
                                     " [全${item?.episodes?.size ?: 0}集]",
-                                    color = Color.White.copy(alpha = 0.85f),
+                                    color = com.fanhuatv.ui.theme.TextPrimary.copy(alpha = 0.85f),
                                     fontSize = 13.sp
                                 )
                             }
@@ -798,7 +798,7 @@ fun PlayerScreen(
                         if (!item?.actor.isNullOrBlank()) {
                             Text(
                                 "演员：${item?.actor.orEmpty()}",
-                                color = Color.White,
+                                color = com.fanhuatv.ui.theme.TextPrimary,
                                 fontSize = 14.sp,
                                 maxLines = 2,
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
@@ -814,7 +814,7 @@ fun PlayerScreen(
                     var expanded by remember { mutableStateOf(false) }
                     Text(
                         item?.desc.orEmpty(),
-                        color = Color.White,
+                        color = com.fanhuatv.ui.theme.TextPrimary,
                         fontSize = 15.sp,
                         lineHeight = 22.sp,
                         maxLines = if (expanded) Int.MAX_VALUE else 3,
@@ -838,7 +838,7 @@ fun PlayerScreen(
                 if (lines.size > 1) {
                     Spacer(Modifier.height(16.dp))
                     // 与「选集」同款分区标题：上面「线路」、下面具体线路
-                    Text("线路", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("线路", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     // 一排三个等宽胶囊：每行重量均分，来多少条线路都整齐；
                     // 单条名字再长也只在本格内省略，不挤压别人、不折成 2+1
@@ -878,11 +878,11 @@ fun PlayerScreen(
                 // 选集标题行
                 Spacer(Modifier.height(16.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("选集", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("选集", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(8.dp))
                     Text(
                         "共${item?.episodes.orEmpty().size}集",
-                        color = Color.White.copy(alpha = 0.75f),
+                        color = com.fanhuatv.ui.theme.TextPrimary.copy(alpha = 0.75f),
                         fontSize = 13.sp
                     )
                     Spacer(Modifier.weight(1f))
@@ -891,7 +891,7 @@ fun PlayerScreen(
 
                 // 选集网格：4 列，全局胶囊样式——紫色填充，选中加深一档
                 if (eps.isEmpty()) {
-                    Text("当前影片没有剧集列表", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+                    Text("当前影片没有剧集列表", color = com.fanhuatv.ui.theme.TextPrimary.copy(alpha = 0.6f), fontSize = 13.sp)
                 } else {
                     // 只显示前四排（4×42 + 3×10 = 198dp），最后一排贴边；更多集数在区域内下滑查看
                     Column(
@@ -922,7 +922,7 @@ fun PlayerScreen(
                                     ) {
                                         Text(
                                             ep.name.ifBlank { "播放" },
-                                            color = Color.White,
+                                            color = com.fanhuatv.ui.theme.TextPrimary,
                                             fontSize = 15.sp
                                         )
                                     }
@@ -957,9 +957,9 @@ fun PlayerScreen(
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "返回", tint = Color.White)
                 }
-                Text(title, color = Color.White, modifier = Modifier.weight(1f))
+                Text(title, color = com.fanhuatv.ui.theme.TextPrimary, modifier = Modifier.weight(1f))
                 TextButton(onClick = { showSpeedDialog = true }) {
-                    Text("${currentSpeed}x", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("${currentSpeed}x", color = com.fanhuatv.ui.theme.TextPrimary, fontWeight = FontWeight.Bold)
                 }
                 IconButton(onClick = {
                     isFullscreen = !isFullscreen
@@ -995,7 +995,7 @@ fun PlayerScreen(
                     )
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text(gestureTip, color = Color.White, fontSize = 14.sp)
+                Text(gestureTip, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 14.sp)
             }
         }
 
@@ -1010,7 +1010,7 @@ fun PlayerScreen(
                     )
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
-                Text(playError, color = Color.White, fontSize = 14.sp)
+                Text(playError, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 14.sp)
             }
         }
 
@@ -1027,7 +1027,7 @@ fun PlayerScreen(
                     )
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
-                Text("正在解析播放地址…", color = Color.White, fontSize = 14.sp)
+                Text("正在解析播放地址…", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 14.sp)
             }
         } else if (playError.isBlank() && resolveErrMsg.isNotBlank()) {
             Box(
@@ -1039,7 +1039,7 @@ fun PlayerScreen(
                     )
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
-                Text(resolveErrMsg, color = Color.White, fontSize = 14.sp)
+                Text(resolveErrMsg, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 14.sp)
             }
         }
     }
@@ -1156,7 +1156,7 @@ fun PlayerScreen(
                                     ) {
                                         Text(
                                             ep.name.ifBlank { "播放" },
-                                            color = Color.White,
+                                            color = com.fanhuatv.ui.theme.TextPrimary,
                                             fontSize = 15.sp,
                                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                                             maxLines = 1,
@@ -1182,7 +1182,7 @@ private fun InfoLine(label: String, value: String) {
     if (value.isBlank()) return
     Text(
         "$label：$value",
-        color = Color.White,
+        color = com.fanhuatv.ui.theme.TextPrimary,
         fontSize = 14.sp,
         maxLines = 1,
         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
@@ -1197,7 +1197,7 @@ private fun osdButton(label: String, onClick: () -> Unit) {
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
         modifier = Modifier.height(32.dp)
     ) {
-        Text(label, color = Color.White, fontSize = 12.sp)
+        Text(label, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 12.sp)
     }
 }
 
@@ -1272,7 +1272,7 @@ private fun DanmakuBulletView(text: String, lane: Int, onDone: () -> Unit) {
     }
     Text(
         text = text,
-        color = Color.White,
+        color = com.fanhuatv.ui.theme.TextPrimary,
         fontSize = 14.sp,
         maxLines = 1,
         style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, blurRadius = 8f)),

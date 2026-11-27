@@ -98,7 +98,7 @@ fun CategoryScreen(
             }
             Text(
                 actionToast,
-                color = Color.White,
+                color = com.fanhuatv.ui.theme.TextPrimary,
                 fontSize = 13.sp,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -123,7 +123,7 @@ fun CategoryScreen(
             if (categories.isEmpty()) {
                 Box(Modifier.fillMaxSize(), Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("暂无分类数据", color = Color.White)
+                        Text("暂无分类数据", color = com.fanhuatv.ui.theme.TextPrimary)
                         Spacer(Modifier.height(6.dp))
                         Text(diagnostic, color = com.fanhuatv.ui.theme.TextSecondary, fontSize = 11.sp, textAlign = TextAlign.Center)
                         Spacer(Modifier.height(10.dp))

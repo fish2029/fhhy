@@ -63,7 +63,7 @@ fun MineScreen(
                 }
                 Spacer(Modifier.width(16.dp))
                 Column {
-                    Text("繁华TV", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text("繁华TV", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     Text("影视 · 直播 一站式", color = TextSecondary, fontSize = 12.sp)
                 }
             }
@@ -127,8 +127,22 @@ fun MineScreen(
                     DropdownItem("110%") { vm.updateUi { it.copy(fontScale = 110) }; close() }
                     DropdownItem("120%") { vm.updateUi { it.copy(fontScale = 120) }; close() }
                 }
+                // 按钮样式：全局按钮/胶囊的填充形态，切换即时生效
+                OptionRow(Icons.Filled.SmartButton, "按钮样式", current = buttonStyleLabel(ui.buttonStyle ?: "gradient")) { close ->
+                    DropdownItem("渐变胶囊") { vm.updateUi { it.copy(buttonStyle = "gradient") }; close() }
+                    DropdownItem("纯色圆角") { vm.updateUi { it.copy(buttonStyle = "solid") }; close() }
+                    DropdownItem("描边幽灵") { vm.updateUi { it.copy(buttonStyle = "outline") }; close() }
+                }
+                // 全局文字颜色：主文字颜色全局刷新，切换即时生效
+                OptionRow(Icons.Filled.TextFields, "全局文字颜色", current = textColorLabel(ui.textColor ?: "white")) { close ->
+                    DropdownItem("纯白") { vm.updateUi { it.copy(textColor = "white") }; close() }
+                    DropdownItem("暖白") { vm.updateUi { it.copy(textColor = "warm") }; close() }
+                    DropdownItem("淡金") { vm.updateUi { it.copy(textColor = "gold") }; close() }
+                    DropdownItem("天蓝") { vm.updateUi { it.copy(textColor = "blue") }; close() }
+                    DropdownItem("淡紫") { vm.updateUi { it.copy(textColor = "purple") }; close() }
+                }
                 Text(
-                    "三档外观即时切换：浅色日间为亮灰调，跟随系统为默认深黑，深色夜间为纯黑；切换不会中断浏览位置。",
+                    "强调色、按钮样式、文字颜色、外观模式全部即时生效，切换不会中断浏览位置。",
                     color = TextSecondary,
                     fontSize = 11.sp,
                     lineHeight = 16.sp,
@@ -199,6 +213,20 @@ private fun bottomBarLabel(key: String): String = when (key) {
     else -> "图标+文字"
 }
 
+private fun buttonStyleLabel(key: String): String = when (key) {
+    "solid" -> "纯色圆角"
+    "outline" -> "描边幽灵"
+    else -> "渐变胶囊"
+}
+
+private fun textColorLabel(key: String): String = when (key) {
+    "warm" -> "暖白"
+    "gold" -> "淡金"
+    "blue" -> "天蓝"
+    "purple" -> "淡紫"
+    else -> "纯白"
+}
+
 private fun columnsLabel(columns: Int): String = when (columns) {
     2 -> "疏松"
     4 -> "紧密"
@@ -250,7 +278,7 @@ private fun SettingHeader(icon: ImageVector, title: String, current: String) {
     ) {
         RowIcon(icon)
         Spacer(Modifier.width(14.dp))
-        Text(title, color = Color.White, fontSize = 15.sp, modifier = Modifier.weight(1f))
+        Text(title, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 15.sp, modifier = Modifier.weight(1f))
         Text(current, color = Accent, fontSize = 13.sp)
     }
 }
@@ -344,7 +372,7 @@ private fun NavRow(icon: ImageVector, title: String, subtitle: String, onClick: 
         RowIcon(icon)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
-            Text(title, color = Color.White, fontSize = 15.sp)
+            Text(title, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 15.sp)
             if (subtitle.isNotBlank()) Text(subtitle, color = TextSecondary, fontSize = 11.sp)
         }
         Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = TextSecondary)
@@ -362,7 +390,7 @@ private fun SwitchRow(icon: ImageVector, title: String, subtitle: String, checke
         RowIcon(icon)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
-            Text(title, color = Color.White, fontSize = 15.sp)
+            Text(title, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 15.sp)
             if (subtitle.isNotBlank()) Text(subtitle, color = TextSecondary, fontSize = 11.sp)
         }
         Switch(checked = checked, onCheckedChange = onChange)
@@ -387,7 +415,7 @@ private fun OptionRow(
     ) {
         RowIcon(icon)
         Spacer(Modifier.width(14.dp))
-        Text(title, color = Color.White, fontSize = 15.sp, modifier = Modifier.weight(1f))
+        Text(title, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 15.sp, modifier = Modifier.weight(1f))
         Text(current, color = Accent, fontSize = 13.sp)
         Spacer(Modifier.width(4.dp))
         Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = TextSecondary)

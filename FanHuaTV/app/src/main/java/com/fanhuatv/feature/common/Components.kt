@@ -74,7 +74,7 @@ fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, s
                             modifier = Modifier.size(12.dp)
                         )
                         Spacer(Modifier.width(2.dp))
-                        Text(item.displayRating, color = Color.White, fontSize = 11.sp)
+                        Text(item.displayRating, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 11.sp)
                     }
                 }
             }
@@ -82,7 +82,7 @@ fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, s
         // 标题独立于海报图下方，单行省略：任意列数下都不与图内文字冲突
         Text(
             item.displayTitle,
-            color = Color.White,
+            color = com.fanhuatv.ui.theme.TextPrimary,
             fontSize = 12.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -100,7 +100,7 @@ fun SectionTitle(text: String, action: String? = null, onAction: () -> Unit = {}
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text, color = Color.White, fontSize = 16.sp)
+        Text(text, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 16.sp)
         if (action != null) {
             Text(action, color = Accent, fontSize = 12.sp, modifier = Modifier.clickable { onAction() })
         }

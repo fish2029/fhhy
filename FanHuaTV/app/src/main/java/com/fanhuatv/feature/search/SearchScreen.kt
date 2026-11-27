@@ -42,7 +42,6 @@ import com.fanhuatv.feature.common.SubTopBar
 import com.fanhuatv.feature.common.VodCard
 import com.fanhuatv.navigation.Routes
 import com.fanhuatv.ui.theme.Accent
-import com.fanhuatv.ui.theme.AccentDeep
 import com.fanhuatv.ui.theme.TextSecondary
 
 /**
@@ -99,14 +98,14 @@ fun SearchScreen(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(50))
-                        .background(Accent)
+                        .then(com.fanhuatv.ui.theme.buttonFill())
                         .padding(horizontal = 14.dp, vertical = 10.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Filled.Search,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = com.fanhuatv.ui.theme.buttonTextColor(),
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(8.dp))
@@ -114,8 +113,8 @@ fun SearchScreen(
                             value = keyword,
                             onValueChange = { keyword = it },
                             singleLine = true,
-                            textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
-                            cursorBrush = SolidColor(Color.White),
+                            textStyle = TextStyle(color = com.fanhuatv.ui.theme.buttonTextColor(), fontSize = 14.sp),
+                            cursorBrush = SolidColor(com.fanhuatv.ui.theme.buttonTextColor()),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                             keyboardActions = KeyboardActions(onSearch = { startSearch(keyword) }),
                             modifier = Modifier.weight(1f),
@@ -123,7 +122,7 @@ fun SearchScreen(
                                 if (keyword.isBlank()) {
                                     Text(
                                         "关键字…",
-                                        color = Color.White.copy(alpha = 0.6f),
+                                        color = com.fanhuatv.ui.theme.buttonTextColor().copy(alpha = 0.6f),
                                         fontSize = 13.sp
                                     )
                                 }
@@ -142,7 +141,7 @@ fun SearchScreen(
                 Spacer(Modifier.height(18.dp))
                 Text(
                     "历史",
-                    color = Color.White,
+                    color = com.fanhuatv.ui.theme.TextPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -165,7 +164,7 @@ fun SearchScreen(
             Spacer(Modifier.height(18.dp))
             Text(
                 "热搜",
-                color = Color.White,
+                color = com.fanhuatv.ui.theme.TextPrimary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -280,11 +279,11 @@ private fun tagPill(label: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
-            .background(Accent)
+            .then(com.fanhuatv.ui.theme.buttonFill())
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 8.dp)
     ) {
-        Text(label, color = Color.White, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(label, color = com.fanhuatv.ui.theme.buttonTextColor(), fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -295,13 +294,16 @@ private fun siteChip(label: String, selected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(50))
-            .background(if (selected) AccentDeep else Accent)
+            .then(
+                if (selected) com.fanhuatv.ui.theme.buttonFill()
+                else Modifier.background(if (com.fanhuatv.ui.theme.isOutlineButtonStyle()) Accent.copy(alpha = 0.12f) else Accent)
+            )
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 10.dp)
     ) {
         Text(
             label,
-            color = Color.White,
+            color = if (selected) com.fanhuatv.ui.theme.buttonTextColor() else Color.White,
             fontSize = 13.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -349,7 +351,7 @@ private fun ResultCard(item: VodItem, sourceName: String, navController: NavCont
             ) {
                 Text(
                     sourceName,
-                    color = Color.White,
+                    color = com.fanhuatv.ui.theme.TextPrimary,
                     fontSize = 10.sp,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                 )
@@ -363,7 +365,7 @@ private fun ResultCard(item: VodItem, sourceName: String, navController: NavCont
                 ) {
                     Text(
                         item.displayRating,
-                        color = Color.White,
+                        color = com.fanhuatv.ui.theme.TextPrimary,
                         fontSize = 10.sp,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                     )
@@ -380,7 +382,7 @@ private fun ResultCard(item: VodItem, sourceName: String, navController: NavCont
         ) {
             Text(
                 item.displayTitle,
-                color = Color.White,
+                color = com.fanhuatv.ui.theme.TextPrimary,
                 fontSize = 12.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

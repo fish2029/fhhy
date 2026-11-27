@@ -64,7 +64,7 @@ fun HomeScreen(
             }
             Text(
                 actionToast,
-                color = Color.White,
+                color = com.fanhuatv.ui.theme.TextPrimary,
                 fontSize = 13.sp,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -89,7 +89,7 @@ fun HomeScreen(
         if (crashBanner.isNotBlank()) {
             Text(
                 "上次崩溃：$crashBanner",
-                color = Color.White,
+                color = com.fanhuatv.ui.theme.TextPrimary,
                 fontSize = 12.sp,
                 maxLines = 2,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
@@ -108,7 +108,7 @@ fun HomeScreen(
             }
             is Resource.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text((status as Resource.Error).message, color = Color.White)
+                    Text((status as Resource.Error).message, color = com.fanhuatv.ui.theme.TextPrimary)
                     Spacer(Modifier.height(12.dp))
                     Button(onClick = { appVm.load() }) { Text("重试") }
                     TextButton(onClick = { navController.navigate(Routes.CONFIG) }) {
@@ -261,7 +261,7 @@ internal fun HomeSiteSwitcher(
                 .fillMaxWidth()
                 .height(52.dp)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Brush.horizontalGradient(com.fanhuatv.ui.theme.AccentPill))
+                .then(com.fanhuatv.ui.theme.buttonFill())
                 .clickable { expanded = true }
         ) {
             Row(
@@ -271,13 +271,13 @@ internal fun HomeSiteSwitcher(
                 Icon(
                     Icons.Filled.PlayArrow,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = com.fanhuatv.ui.theme.buttonTextColor(),
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
                     currentName,
-                    color = Color.White,
+                    color = com.fanhuatv.ui.theme.buttonTextColor(),
                     fontSize = 13.sp,
                     maxLines = 1,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
@@ -286,7 +286,7 @@ internal fun HomeSiteSwitcher(
                 Icon(
                     Icons.Filled.ArrowDropDown,
                     contentDescription = null,
-                    tint = Color.White
+                    tint = com.fanhuatv.ui.theme.buttonTextColor()
                 )
             }
         }
@@ -317,7 +317,7 @@ internal fun HomeSiteSwitcher(
                             .padding(vertical = 12.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("首页站源", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("首页站源", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.height(14.dp))
 
@@ -418,13 +418,13 @@ private fun CategoryBar(
                     modifier = Modifier
                         .width(itemWidth)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Brush.horizontalGradient(com.fanhuatv.ui.theme.AccentPill))
+                        .then(com.fanhuatv.ui.theme.buttonFill())
                         .clickable { onSelect(category) },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         category.name.ifBlank { "未命名" },
-                        color = Color.White,
+                        color = com.fanhuatv.ui.theme.buttonTextColor(),
                         fontSize = 13.sp,
                         maxLines = 1,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp)
@@ -445,7 +445,7 @@ internal fun FloatingSearchBar(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
-            .background(Brush.horizontalGradient(com.fanhuatv.ui.theme.AccentPill))
+            .then(com.fanhuatv.ui.theme.buttonFill())
     ) {
         Row(
             modifier = Modifier
@@ -455,9 +455,9 @@ internal fun FloatingSearchBar(
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Filled.Search, contentDescription = null, tint = Color.White)
+            Icon(Icons.Filled.Search, contentDescription = null, tint = com.fanhuatv.ui.theme.buttonTextColor())
             Spacer(Modifier.width(10.dp))
-            Text("搜索影片、演员、导演", color = Color.White, fontSize = 14.sp)
+            Text("搜索影片、演员、导演", color = com.fanhuatv.ui.theme.buttonTextColor(), fontSize = 14.sp)
         }
     }
 }
@@ -509,7 +509,7 @@ internal fun BannerCarousel(
             ) {
                 Text(
                     banner.title,
-                    color = Color.White,
+                    color = com.fanhuatv.ui.theme.TextPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
@@ -519,7 +519,7 @@ internal fun BannerCarousel(
                 if (banner.rating.isNotBlank()) {
                     Text(
                         "★ ${banner.rating}",
-                        color = Color.White,
+                        color = com.fanhuatv.ui.theme.TextPrimary,
                         fontSize = 13.sp,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -588,7 +588,7 @@ internal fun ContinueWatchingRow(
                     Spacer(Modifier.height(4.dp))
                     Text(
                         history.title,
-                        color = Color.White,
+                        color = com.fanhuatv.ui.theme.TextPrimary,
                         fontSize = 12.sp,
                         maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis

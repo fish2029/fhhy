@@ -72,7 +72,7 @@ private fun SecurityItem(label: String, value: String) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(label, color = com.fanhuatv.ui.theme.TextSecondary, fontSize = 12.sp)
             Spacer(Modifier.height(4.dp))
-            Text(value, color = Color.White, fontSize = 13.sp)
+            Text(value, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 13.sp)
         }
     }
 }

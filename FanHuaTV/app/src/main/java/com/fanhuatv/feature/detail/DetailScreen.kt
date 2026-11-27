@@ -112,7 +112,7 @@ fun DetailScreen(
     ) { padding ->
         if (shown == null) {
             Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) {
-                Text("未找到影片信息", color = Color.White)
+                Text("未找到影片信息", color = com.fanhuatv.ui.theme.TextPrimary)
             }
             return@Scaffold
         }
@@ -129,7 +129,7 @@ fun DetailScreen(
             )
 
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(cur.displayTitle, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(cur.displayTitle, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(6.dp))
                 Text(
                     "评分 ${cur.displayRating.ifBlank { "暂无" }}  ·  ${cur.year}  ·  ${cur.category}",
@@ -182,17 +182,18 @@ fun DetailScreen(
                             }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = com.fanhuatv.ui.theme.Accent),
-                    modifier = Modifier.fillMaxWidth()
+                    colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                    border = com.fanhuatv.ui.theme.materialButtonBorder(),
+                    modifier = Modifier.fillMaxWidth().then(com.fanhuatv.ui.theme.materialButtonBackground())
                 ) {
-                    Text("立即播放", color = Color.Black)
+                    Text("立即播放", color = com.fanhuatv.ui.theme.materialButtonTextColor())
                 }
 
                 if (cur.episodes.isNotEmpty()) {
                     Spacer(Modifier.height(16.dp))
                     // 与「选集」同款分区：上面「线路」标题 + 具体线路，下面「选集」标题 + 集数
                     if (lines.size > 1) {
-                        Text("线路", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("线路", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(8.dp))
                         // 一排三个等宽胶囊：与播放页线路区同款，每行重量均分；
                         // 名字再长只在本格内省略，不折成 2+1、不把第三条挤出屏幕
@@ -228,7 +229,7 @@ fun DetailScreen(
                         }
                         Spacer(Modifier.height(16.dp))
                     }
-                    Text("选集", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("选集", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(64.dp),
@@ -242,11 +243,9 @@ fun DetailScreen(
                                     LivePlayBus.play(url, "${cur.displayTitle} ${ep.name}", cur)
                                     navController.navigate(com.fanhuatv.navigation.Routes.PLAYER)
                                 } },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = com.fanhuatv.ui.theme.Accent,
-                                    contentColor = Color.Black
-                                ),
-                                modifier = Modifier.height(40.dp)
+                                colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                                border = com.fanhuatv.ui.theme.materialButtonBorder(),
+                                modifier = Modifier.height(40.dp).then(com.fanhuatv.ui.theme.materialButtonBackground())
                             ) {
                                 Text(ep.name.ifBlank { "播放" }, fontSize = 12.sp)
                             }
@@ -257,7 +256,7 @@ fun DetailScreen(
                 // 换源：详情既没剧集也没地址（豆瓣源等元数据源）时，全站搜同名片子
                 if (cur.episodes.isEmpty() && cur.playUrl.isBlank()) {
                     Spacer(Modifier.height(16.dp))
-                    Text("换源", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("换源", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     if (altLoading && altSources.isEmpty()) {
                         Text("正在全站找片源…", color = com.fanhuatv.ui.theme.TextSecondary, fontSize = 13.sp)
@@ -276,11 +275,9 @@ fun DetailScreen(
                                 }.ifBlank { "站点" }
                                 Button(
                                     onClick = { vm.loadDetail(alt) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = com.fanhuatv.ui.theme.Accent,
-                                        contentColor = Color.Black
-                                    ),
-                                    modifier = Modifier.height(36.dp)
+                                    colors = com.fanhuatv.ui.theme.materialButtonColors(),
+                                    border = com.fanhuatv.ui.theme.materialButtonBorder(),
+                                    modifier = Modifier.height(36.dp).then(com.fanhuatv.ui.theme.materialButtonBackground())
                                 ) {
                                     Text(altName, fontSize = 12.sp, maxLines = 1)
                                 }
@@ -303,7 +300,7 @@ fun DetailScreen(
                     )
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
-                Text(notice, color = Color.White, fontSize = 14.sp)
+                Text(notice, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 14.sp)
             }
         }
     }

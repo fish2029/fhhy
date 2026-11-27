@@ -45,7 +45,7 @@ fun LiveScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("直播", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("直播", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 TextButton(onClick = { navController.navigate(com.fanhuatv.navigation.Routes.CONFIG) }) {
                     Text("配置直播源")
                 }
@@ -71,7 +71,7 @@ fun LiveScreen(
             }
             is Resource.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(state.message, color = Color.White)
+                    Text(state.message, color = com.fanhuatv.ui.theme.TextPrimary)
                     Button(onClick = { vm.loadChannels() }) { Text("重试") }
                 }
             }
@@ -114,7 +114,7 @@ private fun ChannelRow(channel: LiveChannel, onClick: () -> Unit) {
     ) {
         Text(
             channel.name,
-            color = Color.White,
+            color = com.fanhuatv.ui.theme.TextPrimary,
             fontSize = 14.sp,
             modifier = Modifier.padding(16.dp)
         )

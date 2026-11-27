@@ -148,7 +148,7 @@ fun HistoryScreen(
                     )
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(row.title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                        Text(row.title, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                         Text(row.subtitle, color = com.fanhuatv.ui.theme.TextSecondary, fontSize = 12.sp)
                     }
                 }

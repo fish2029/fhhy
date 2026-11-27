@@ -69,7 +69,7 @@ fun CrashLogScreen(navController: NavController) {
             Spacer(Modifier.height(8.dp))
             Text(
                 shown.ifBlank { "没有崩溃记录，出问题时这里会有堆栈，复制发给我就行。" },
-                color = Color.White,
+                color = com.fanhuatv.ui.theme.TextPrimary,
                 fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace,
                 modifier = Modifier.verticalScroll(rememberScrollState()).weight(1f)

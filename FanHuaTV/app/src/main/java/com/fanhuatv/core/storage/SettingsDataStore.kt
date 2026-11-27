@@ -54,7 +54,9 @@ data class UiSettings(
     val homeBanner: Boolean? = null,        // 首页大图横幅开关，null=true
     val posterColumns: Int? = null,         // 海报密度（列数）2/3/4，null=3
     val posterInfo: String? = null,         // 海报下方信息显示：all=全部显示（评分+标题）| title=仅标题，null=all
-    val continueWatching: Boolean? = null   // 首页「继续观看」一栏，null=true
+    val continueWatching: Boolean? = null,  // 首页「继续观看」一栏，null=true
+    val buttonStyle: String? = null,        // 按钮样式：gradient=渐变胶囊 | solid=纯色圆角 | outline=描边幽灵，null=gradient
+    val textColor: String? = null           // 全局文字颜色：white | warm | gold | blue | purple，null=white
 )
 
 /** 所有设置项的 DataStore 仓库 */

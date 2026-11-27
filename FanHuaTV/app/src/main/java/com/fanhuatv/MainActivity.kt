@@ -13,6 +13,8 @@ import com.fanhuatv.core.storage.UiSettings
 import com.fanhuatv.navigation.AppNavHost
 import com.fanhuatv.ui.theme.FanHuaTheme
 import com.fanhuatv.ui.theme.applyAccent
+import com.fanhuatv.ui.theme.applyButtonStyle
+import com.fanhuatv.ui.theme.applyTextColor
 import com.fanhuatv.ui.theme.applyThemeMode
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -34,6 +36,9 @@ class MainActivity : ComponentActivity() {
             applyAccent(ui.accent)
             // 外观模式同样走快照状态：三档背景深浅即时切换
             applyThemeMode(ui.themeMode)
+            // 按钮样式与全局文字颜色：快照状态，切换即时全局刷新
+            applyButtonStyle(ui.buttonStyle)
+            applyTextColor(ui.textColor)
 
             FanHuaTheme(themeMode = ui.themeMode) {
                 // 界面缩放：按百分比放大字体（布局密度不变，避免小屏溢出）

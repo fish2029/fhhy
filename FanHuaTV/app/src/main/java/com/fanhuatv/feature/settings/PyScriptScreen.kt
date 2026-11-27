@@ -480,7 +480,7 @@ private fun ScriptCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(script.name, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(script.name, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     Text(
                         "版本 ${script.version} · ${script.siteName.ifBlank { "通用站点" }} · ${script.author}",
                         color = TextSecondary, fontSize = 11.sp

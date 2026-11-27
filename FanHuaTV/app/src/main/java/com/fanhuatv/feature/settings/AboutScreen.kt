@@ -42,7 +42,7 @@ fun AboutScreen(navController: NavController) {
                 }
             }
             Spacer(Modifier.height(12.dp))
-            Text("繁华TV", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text("繁华TV", color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(
                 "v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})",
                 color = com.fanhuatv.ui.theme.TextSecondary, fontSize = 13.sp
@@ -108,7 +108,7 @@ private fun AboutRow(icon: androidx.compose.ui.graphics.vector.ImageVector, titl
     ) {
         Icon(icon, null, tint = Accent)
         Spacer(Modifier.width(16.dp))
-        Text(title, color = Color.White, fontSize = 15.sp, modifier = Modifier.weight(1f))
+        Text(title, color = com.fanhuatv.ui.theme.TextPrimary, fontSize = 15.sp, modifier = Modifier.weight(1f))
         Icon(Icons.Filled.ChevronRight, null, tint = com.fanhuatv.ui.theme.TextSecondary)
     }
 }
