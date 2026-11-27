@@ -88,6 +88,9 @@ private var buttonStyleKey by mutableStateOf("capsule")
 /** 当前全局文字颜色 key：快照状态，改一处全局刷新 */
 private var textColorKey by mutableStateOf("white")
 
+/** 当前全局背景颜色 key：快照状态，改一处全局刷新 */
+private var bgColorKey by mutableStateOf("default")
+
 /** 应用外观模式（未知 key 回落深色），MainActivity 启动及设置变更时调用 */
 fun applyThemeMode(key: String?) {
     themeKey = when (key) {
@@ -114,6 +117,11 @@ fun applyButtonStyle(key: String?) {
 /** 应用全局文字颜色（未知 key 回落纯白），MainActivity 启动及设置变更时调用 */
 fun applyTextColor(key: String?) {
     textColorKey = if (key != null && TEXT_COLORS.containsKey(key)) key else "white"
+}
+
+/** 应用全局背景颜色（未知 key 回落默认），MainActivity 启动及设置变更时调用 */
+fun applyBgColor(key: String?) {
+    bgColorKey = if (key != null && BG_COLORS.containsKey(key)) key else "default"
 }
 
 /** 全局默认强调色：紫色填充胶囊（搜索栏/按钮/chips 默认态统一用这套紫） */
@@ -153,19 +161,47 @@ fun materialButtonBackground(): Modifier = Modifier.background(Brush.horizontalG
 fun materialButtonTextColor(): Color = Color.Black
 
 /** 背景三档：浅色日间=亮灰调，跟随系统=默认深黑，深色夜间=纯黑（白字在三档下均可读） */
-val BgPrimary: Color get() = when (themeKey) {
+val BgPrimary: Color get() = if (bgColorKey == "default") when (themeKey) {
     "light" -> Color(0xFF1E2128)
     "system" -> Color(0xFF0B0C10)
     else -> Color(0xFF000000)
-}
-val BgSurface: Color get() = when (themeKey) {
+} else BG_COLORS[bgColorKey] ?: Color(0xFF000000)
+val BgSurface: Color get() = if (bgColorKey == "default") when (themeKey) {
     "light" -> Color(0xFF262A33)
     else -> Color(0xFF16181D)
-}
-val BgCard: Color get() = when (themeKey) {
+} else mixWhite(BgPrimary, 0.08f)
+val BgCard: Color get() = if (bgColorKey == "default") when (themeKey) {
     "light" -> Color(0xFF2E323D)
     else -> Color(0xFF1F2229)
-}
+} else mixWhite(BgPrimary, 0.14f)
+
+/** 向白色按比例混合（f=0.08 即 8% 白），用于从背景色派生卡片/面板色 */
+private fun mixWhite(c: Color, f: Float) = Color(
+    c.red + (1f - c.red) * f,
+    c.green + (1f - c.green) * f,
+    c.blue + (1f - c.blue) * f
+)
+
+/** 可选全局背景颜色（「我的-主题色彩-全局背景颜色」），16 档深色系，白字均可读 */
+val BG_COLORS = mapOf(
+    "default" to Color(0xFF000000),
+    "graphite" to Color(0xFF16181D),
+    "slate" to Color(0xFF1E2128),
+    "charcoal" to Color(0xFF222222),
+    "navy" to Color(0xFF0D1B2A),
+    "steel" to Color(0xFF1B2735),
+    "ocean" to Color(0xFF12263F),
+    "forest" to Color(0xFF0E1F16),
+    "moss" to Color(0xFF18241A),
+    "olive" to Color(0xFF1C2314),
+    "tealbg" to Color(0xFF0C2222),
+    "coffee" to Color(0xFF241A12),
+    "wine" to Color(0xFF2A0E14),
+    "aubergine" to Color(0xFF241019),
+    "plum" to Color(0xFF1E1030),
+    "indigo" to Color(0xFF141433)
+)
+
 /** 次要文字：跟全局文字颜色同一色调，降透明度区分主次——改文字颜色时全屏一起变 */
 val TextSecondary: Color get() = TextPrimary.copy(alpha = 0.62f)
 

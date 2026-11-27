@@ -121,12 +121,12 @@ fun MineScreen(
                     selected = ui.accent ?: "purple",
                     onSelect = { key -> vm.updateUi { it.copy(accent = key) } }
                 )
-                OptionRow(Icons.Filled.FormatSize, "界面整体缩放", current = "${ui.fontScale ?: 100}%") { close ->
-                    DropdownItem("90%") { vm.updateUi { it.copy(fontScale = 90) }; close() }
-                    DropdownItem("100%") { vm.updateUi { it.copy(fontScale = 100) }; close() }
-                    DropdownItem("110%") { vm.updateUi { it.copy(fontScale = 110) }; close() }
-                    DropdownItem("120%") { vm.updateUi { it.copy(fontScale = 120) }; close() }
-                }
+                // 全局背景颜色：一排排色点直接点选（与文字颜色同款交互），切换即时生效
+                SettingHeader(Icons.Filled.FormatColorFill, "全局背景颜色", current = bgLabel(ui.bgColor ?: "default"))
+                BgColorDotRow(
+                    selected = ui.bgColor ?: "default",
+                    onSelect = { key -> vm.updateUi { it.copy(bgColor = key) } }
+                )
                 // 按钮样式：全局按钮/胶囊的圆角形态（方角/圆角/胶囊），切换即时生效
                 OptionRow(Icons.Filled.SmartButton, "按钮样式", current = buttonStyleLabel(ui.buttonStyle ?: "capsule")) { close ->
                     DropdownItem("方角") { vm.updateUi { it.copy(buttonStyle = "square") }; close() }
@@ -140,7 +140,7 @@ fun MineScreen(
                     onSelect = { key -> vm.updateUi { it.copy(textColor = key) } }
                 )
                 Text(
-                    "强调色、按钮样式、文字颜色、外观模式全部即时生效，切换不会中断浏览位置。",
+                    "强调色、按钮样式、文字颜色、背景颜色、外观模式全部即时生效，切换不会中断浏览位置。",
                     color = TextSecondary,
                     fontSize = 11.sp,
                     lineHeight = 16.sp,
@@ -246,6 +246,26 @@ private fun textColorLabel(key: String): String = when (key) {
     "brown" -> "棕色"
     "wine" -> "酒红"
     else -> "纯白"
+}
+
+private fun bgLabel(key: String): String = when (key) {
+    "default" -> "默认纯黑"
+    "graphite" -> "石墨灰"
+    "slate" -> "岩板灰"
+    "charcoal" -> "炭灰"
+    "navy" -> "深海军蓝"
+    "steel" -> "钢蓝"
+    "ocean" -> "深海蓝"
+    "forest" -> "墨绿"
+    "moss" -> "苔绿"
+    "olive" -> "橄榄绿"
+    "tealbg" -> "墨青"
+    "coffee" -> "咖啡棕"
+    "wine" -> "酒红"
+    "aubergine" -> "茄紫"
+    "plum" -> "深梅紫"
+    "indigo" -> "深靛蓝"
+    else -> key
 }
 
 private fun columnsLabel(columns: Int): String = when (columns) {
@@ -405,6 +425,49 @@ private fun AccentDotRow(selected: String, onSelect: (String) -> Unit) {
                             .size(34.dp)
                             .clip(CircleShape)
                             .background(ACCENT_SCHEMES[key]?.base ?: Color.White)
+                            .border(
+                                width = if (isSel) 2.dp else 0.dp,
+                                color = if (isSel) Color.White.copy(alpha = 0.85f) else Color.Transparent,
+                                shape = CircleShape
+                            )
+                            .clickable { onSelect(key) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSel) {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(17.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Spacer(Modifier.height(6.dp))
+}
+
+/** 全局背景颜色色点选择器：与文字颜色同款交互，16 档分两排，选中的带勾 + 描边 */
+@Composable
+private fun BgColorDotRow(selected: String, onSelect: (String) -> Unit) {
+    val keys = com.fanhuatv.ui.theme.BG_COLORS.keys.toList()
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        keys.chunked(8).forEach { rowKeys ->
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                rowKeys.forEach { key ->
+                    val isSel = key == selected
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .background(com.fanhuatv.ui.theme.BG_COLORS[key] ?: Color.Black)
                             .border(
                                 width = if (isSel) 2.dp else 0.dp,
                                 color = if (isSel) Color.White.copy(alpha = 0.85f) else Color.Transparent,

@@ -13,6 +13,7 @@ import com.fanhuatv.core.storage.UiSettings
 import com.fanhuatv.navigation.AppNavHost
 import com.fanhuatv.ui.theme.FanHuaTheme
 import com.fanhuatv.ui.theme.applyAccent
+import com.fanhuatv.ui.theme.applyBgColor
 import com.fanhuatv.ui.theme.applyButtonStyle
 import com.fanhuatv.ui.theme.applyTextColor
 import com.fanhuatv.ui.theme.applyThemeMode
@@ -39,6 +40,8 @@ class MainActivity : ComponentActivity() {
             // 按钮样式与全局文字颜色：快照状态，切换即时全局刷新
             applyButtonStyle(ui.buttonStyle)
             applyTextColor(ui.textColor)
+            // 全局背景颜色：快照状态，切换即时全局刷新
+            applyBgColor(ui.bgColor)
 
             FanHuaTheme(themeMode = ui.themeMode) {
                 // 界面缩放：按百分比放大字体（布局密度不变，避免小屏溢出）
