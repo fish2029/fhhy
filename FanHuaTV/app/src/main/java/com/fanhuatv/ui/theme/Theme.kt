@@ -103,6 +103,7 @@ fun buttonFill(shape: Shape = androidx.compose.ui.graphics.RectangleShape): Modi
 fun buttonTextColor(): Color = if (isOutlineButtonStyle()) Accent else Color.White
 
 /** Material Button 配色：随「按钮样式」设置变化（渐变/纯色底配黑字，描边配强调色字） */
+@Composable
 fun materialButtonColors() = ButtonDefaults.buttonColors(
     containerColor = Color.Transparent,
     contentColor = if (isOutlineButtonStyle()) Accent else Color.Black
