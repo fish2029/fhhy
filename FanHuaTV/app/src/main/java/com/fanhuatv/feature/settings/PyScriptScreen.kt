@@ -77,6 +77,9 @@ fun PyScriptScreen(
     var showReimport by remember { mutableStateOf<SavedScriptEntity?>(null) }
     var showPasteDialog by remember { mutableStateOf(false) }
     var showPathDialog by remember { mutableStateOf(false) }
+    // AI 修源：aiRepairResult.first 为修复后的脚本（空表示失败），second 为提示信息
+    var aiRepairing by remember { mutableStateOf(false) }
+    var aiRepairResult by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     // 批量导入：待导入文件列表（唯一 key + 文件名 + 内容）
     val context = LocalContext.current
@@ -357,7 +360,56 @@ fun PyScriptScreen(
                     Text(log, fontSize = 12.sp)
                 }
             },
-            confirmButton = { TextButton(onClick = { showLogDialog = null }) { Text("关闭") } }
+            confirmButton = { TextButton(onClick = { showLogDialog = null }) { Text("关闭") } },
+            dismissButton = {
+                TextButton(
+                    enabled = !aiRepairing,
+                    onClick = {
+                        aiRepairing = true
+                        vm.aiRepair(id, log) { fixed, msg ->
+                            aiRepairing = false
+                            aiRepairResult = fixed to msg
+                        }
+                    }
+                ) { Text(if (aiRepairing) "AI 修复中…" else "AI 试着修一下") }
+            }
+        )
+    }
+
+    // AI 修复结果弹窗：滚动展示修复后的完整脚本，确认后原位覆盖脚本
+    aiRepairResult?.let { (fixed, msg) ->
+        AlertDialog(
+            onDismissRequest = { aiRepairResult = null },
+            title = { Text(if (fixed.isBlank()) "AI 修复失败" else "AI 修复方案") },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 420.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Text(msg, fontSize = 12.sp, color = if (fixed.isBlank()) Color.Red else Accent)
+                    if (fixed.isNotBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(fixed, fontSize = 11.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                if (fixed.isNotBlank()) {
+                    TextButton(onClick = {
+                        vm.reimportScript(id = showLogDialog ?: return@TextButton, content = fixed) { appVm.load() }
+                        aiRepairResult = null
+                        showLogDialog = null
+                    }) { Text("应用修复") }
+                } else {
+                    TextButton(onClick = { aiRepairResult = null }) { Text("知道了") }
+                }
+            },
+            dismissButton = {
+                if (fixed.isNotBlank()) {
+                    TextButton(onClick = { aiRepairResult = null }) { Text("取消") }
+                }
+            }
         )
     }
 

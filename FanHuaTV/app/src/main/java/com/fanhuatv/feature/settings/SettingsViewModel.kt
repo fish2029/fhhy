@@ -14,6 +14,7 @@ import com.fanhuatv.core.storage.PlaybackSettings
 import com.fanhuatv.core.storage.SettingsDataStore
 import com.fanhuatv.core.storage.UiSettings
 import com.fanhuatv.core.util.Resource
+import com.fanhuatv.python.AiSourceRepair
 import com.fanhuatv.python.PyRuntime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -204,6 +205,45 @@ class SettingsViewModel @Inject constructor(
                 is Resource.Error -> "热更新失败：${result.message}"
                 else -> "热更新失败"
             }
+        }
+    }
+
+    // ===== AI 修源 =====
+    val aiUrl: StateFlow<String> = settings.aiUrl
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    val aiKey: StateFlow<String> = settings.aiKey
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    val aiModel: StateFlow<String> = settings.aiModel
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    /** 保存 AI 接口配置（地址 / 密钥 / 模型名） */
+    fun saveAiConfig(url: String, key: String, model: String) {
+        viewModelScope.launch {
+            settings.setAiConfig(url.trim(), key.trim(), model.trim())
+            _toast.value = "AI 修源配置已保存"
+        }
+    }
+
+    /**
+     * 用 AI 修复指定脚本：取脚本内容 + 报错文本发给配置好的接口，
+     * 结果通过 onResult(fixedScript, message) 回调；fixedScript 为空表示失败。
+     */
+    fun aiRepair(scriptId: String, errorText: String, onResult: (String, String) -> Unit) {
+        viewModelScope.launch {
+            val url = settings.aiUrl.first()
+            val key = settings.aiKey.first()
+            val model = settings.aiModel.first()
+            if (url.isBlank() || key.isBlank()) {
+                onResult("", "请先在「我的」页配置 AI 接口地址和密钥")
+                return@launch
+            }
+            val script = pyRuntime.scriptContent(scriptId)
+            if (script.isBlank()) {
+                onResult("", "读取脚本内容失败")
+                return@launch
+            }
+            val r = AiSourceRepair.repair(url, key, model, script, errorText)
+            onResult(r.fixedScript ?: "", r.message)
         }
     }
 

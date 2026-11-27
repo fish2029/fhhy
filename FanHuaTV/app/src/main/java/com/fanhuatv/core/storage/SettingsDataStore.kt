@@ -87,6 +87,9 @@ class SettingsDataStore @Inject constructor(
         val PY_EXT_MAP = stringPreferencesKey("py_ext_map")   // 脚本 ID -> TVBox ext 参数
         val HOTUPDATE_URL = stringPreferencesKey("hotupdate_url")   // 源热更新：PY 脚本远程地址
         val HOTUPDATE_AUTO = booleanPreferencesKey("hotupdate_auto") // 源热更新：启动自动拉取
+        val AI_URL = stringPreferencesKey("ai_url")     // AI 修源：接口地址（OpenAI 兼容 chat/completions）
+        val AI_KEY = stringPreferencesKey("ai_key")     // AI 修源：接口密钥
+        val AI_MODEL = stringPreferencesKey("ai_model") // AI 修源：模型名
         val CONFIG_CLEARED_V21 = booleanPreferencesKey("config_cleared_v21")
     }
 
@@ -222,6 +225,19 @@ class SettingsDataStore @Inject constructor(
         context.dataStore.edit {
             it[Keys.HOTUPDATE_URL] = url
             it[Keys.HOTUPDATE_AUTO] = auto
+        }
+    }
+
+    /** AI 修源：接口地址 / 密钥 / 模型名（OpenAI 兼容格式） */
+    val aiUrl: Flow<String> = context.dataStore.data.map { it[Keys.AI_URL] ?: "" }
+    val aiKey: Flow<String> = context.dataStore.data.map { it[Keys.AI_KEY] ?: "" }
+    val aiModel: Flow<String> = context.dataStore.data.map { it[Keys.AI_MODEL] ?: "" }
+
+    suspend fun setAiConfig(url: String, key: String, model: String) {
+        context.dataStore.edit {
+            it[Keys.AI_URL] = url.trim()
+            it[Keys.AI_KEY] = key.trim()
+            it[Keys.AI_MODEL] = model.trim()
         }
     }
 

@@ -44,6 +44,7 @@ fun MineScreen(
     val ui by vm.ui.collectAsStateWithLifecycle()
     var showHotUpdate by remember { mutableStateOf(false) }
     var showDanmaku by remember { mutableStateOf(false) }
+    var showAiConfig by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // 头部：品牌标识
@@ -108,6 +109,13 @@ fun MineScreen(
                 }
                 NavRow(Icons.Filled.Subtitles, "弹幕设置", "字号 / 速度 / 透明度 / 屏蔽词") {
                     showDanmaku = true
+                }
+            }
+
+            // ===== AI 修源 =====
+            GroupCard("AI 修源") {
+                NavRow(Icons.Filled.BugReport, "AI 修源配置", "填 AI 接口地址和密钥，脚本报错一键让 AI 修") {
+                    showAiConfig = true
                 }
             }
 
@@ -286,6 +294,62 @@ fun MineScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDanmaku = false }) { Text("取消") }
+            }
+        )
+    }
+
+    // AI 修源配置弹窗：接口地址 / 密钥 / 模型名（模型可空，默认 gpt-3.5-turbo）
+    if (showAiConfig) {
+        val savedAiUrl by vm.aiUrl.collectAsStateWithLifecycle()
+        val savedAiKey by vm.aiKey.collectAsStateWithLifecycle()
+        val savedAiModel by vm.aiModel.collectAsStateWithLifecycle()
+        var urlInput by remember(showAiConfig) { mutableStateOf(savedAiUrl) }
+        var keyInput by remember(showAiConfig) { mutableStateOf(savedAiKey) }
+        var modelInput by remember(showAiConfig) { mutableStateOf(savedAiModel) }
+        AlertDialog(
+            onDismissRequest = { showAiConfig = false },
+            title = { Text("AI 修源配置") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = urlInput,
+                        onValueChange = { urlInput = it },
+                        label = { Text("AI 接口地址（OpenAI 兼容）") },
+                        placeholder = { Text("https://api.xxx.com/v1") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = keyInput,
+                        onValueChange = { keyInput = it },
+                        label = { Text("接口密钥（API Key）") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = modelInput,
+                        onValueChange = { modelInput = it },
+                        label = { Text("模型名（留空默认 gpt-3.5-turbo）") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "配置好后，PY 脚本管理里诊断脚本报错时，可点「AI 试着修一下」自动修复",
+                        color = TextSecondary, fontSize = 11.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.saveAiConfig(urlInput, keyInput, modelInput)
+                    showAiConfig = false
+                }) { Text("保存") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAiConfig = false }) { Text("取消") }
             }
         )
     }
