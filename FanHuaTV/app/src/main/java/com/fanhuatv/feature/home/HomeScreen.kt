@@ -499,14 +499,33 @@ internal fun BannerCarousel(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .padding(12.dp)
+                    .height(80.dp)
+                    // 底部渐变遮罩：图上文字压得住，低清图也显得有质感
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f))
+                        )
+                    )
             ) {
                 Text(
                     banner.title,
                     color = Color.White,
                     fontSize = 16.sp,
-                    modifier = Modifier.align(Alignment.BottomStart)
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(12.dp)
                 )
+                if (banner.rating.isNotBlank()) {
+                    Text(
+                        "★ ${banner.rating}",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(12.dp)
+                    )
+                }
             }
         }
         Row(

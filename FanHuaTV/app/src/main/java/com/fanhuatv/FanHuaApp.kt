@@ -1,10 +1,12 @@
 package com.fanhuatv
 
 import android.app.Application
+import coil.ImageLoader
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import com.fanhuatv.core.CrashGuard
 import dagger.hilt.android.HiltAndroidApp
+import okhttp3.OkHttpClient
 
 @HiltAndroidApp
 class FanHuaApp : Application() {
@@ -17,4 +19,20 @@ class FanHuaApp : Application() {
             Python.start(AndroidPlatform(this))
         }
     }
+
+    // 全局图片加载器：豆瓣图链必须带豆瓣 Referer 才返回 200（否则 418 拒绝），
+    // 这里统一给 doubanio.com 的图片请求补来源头，其他站点请求原样放行
+    private val imageHttp = OkHttpClient.Builder()
+        .addInterceptor { chain ->
+            val request = chain.request()
+            if (request.url.host.endsWith("doubanio.com")) {
+                chain.proceed(request.newBuilder().header("Referer", "https://m.douban.com/").build())
+            } else {
+                chain.proceed(request)
+            }
+        }
+        .build()
+
+    override fun newImageLoader(): ImageLoader =
+        ImageLoader.Builder(this).okHttpClient(imageHttp).build()
 }

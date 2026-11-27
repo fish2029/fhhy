@@ -186,7 +186,13 @@ class MainRepository @Inject constructor(
                 // 搜索/详情不能等后台 enrich 完成才有站点表
                 jarSites = parsed.sites.filter { it.source == "jar" && it.enabled }
                 jsonSites = parsed.sites.filter { it.source == "json" && it.enabled }
-                return Resource.Success(parsed)
+                // 轮播图升级：优先用豆瓣热播榜真实榜单高清海报，
+                // 拉不到（断网/风控）保持站源图原样，不阻塞不报错
+                val doubanBanners = runCatching {
+                    withTimeoutOrNull(6_000) { com.fanhuatv.core.network.DoubanBanners.fetch() }
+                }.getOrNull().orEmpty()
+                val finalConfig = if (doubanBanners.isNotEmpty()) parsed.copy(banners = doubanBanners) else parsed
+                return Resource.Success(finalConfig)
             }
             lastError = result.exceptionOrNull()?.message ?: lastError
         }
