@@ -156,13 +156,6 @@ fun HomeScreen(
                         }
                     }
 
-                    SectionTitle("为你推荐", "查看全部") {
-                        CategoryBus.select("", "")
-                        navController.navigate(Routes.CATEGORY) {
-                            popUpTo(Routes.HOME) { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    }
                     val homeItems = config?.homeItems.orEmpty()
                     if (homeItems.isEmpty() && config?.categories?.isNotEmpty() == true) {
                         Text(
