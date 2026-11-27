@@ -120,7 +120,9 @@ private fun ChannelRow(channel: LiveChannel, onClick: () -> Unit) {
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = com.fanhuatv.ui.theme.BgCard)
+        colors = CardDefaults.cardColors(containerColor = com.fanhuatv.ui.theme.Accent.copy(alpha = 0.15f)),
+        shape = com.fanhuatv.ui.theme.buttonShape(),
+        border = androidx.compose.foundation.BorderStroke(1.dp, com.fanhuatv.ui.theme.Accent.copy(alpha = 0.45f))
     ) {
         Text(
             channel.name,

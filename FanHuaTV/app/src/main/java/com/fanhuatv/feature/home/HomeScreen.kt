@@ -302,22 +302,16 @@ internal fun HomeSiteSwitcher(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(Color(0xFF3B2C6E), Color(0xFF241A47))
-                            )
-                        )
+                        .background(com.fanhuatv.ui.theme.pageGradient())
                         .padding(16.dp)
                 ) {
                     // 顶部渐变标题栏（同参考图的"搜索站源"胶囊）
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(28.dp))
+                            .clip(com.fanhuatv.ui.theme.buttonShape())
                             .background(
-                                Brush.horizontalGradient(
-                                    listOf(Color(0xFF7B5FE0), Color(0xFFB06DE6))
-                                )
+                                Brush.horizontalGradient(com.fanhuatv.ui.theme.AccentPill)
                             )
                             .padding(vertical = 12.dp),
                         contentAlignment = Alignment.Center
@@ -378,10 +372,10 @@ internal fun HomeSiteSwitcher(
 /** 弹窗内的胶囊描边按钮，选中高亮（跟随全局按钮样式与文字颜色） */
 @Composable
 private fun SitePill(label: String, selected: Boolean, onClick: () -> Unit) {
-    val border = if (selected) com.fanhuatv.ui.theme.Accent else Color(0x66B39BE8)
+    val border = if (selected) com.fanhuatv.ui.theme.Accent else com.fanhuatv.ui.theme.Accent.copy(alpha = 0.45f)
     Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = Color.Transparent,
+        shape = com.fanhuatv.ui.theme.buttonShape(),
+        color = com.fanhuatv.ui.theme.Accent.copy(alpha = 0.12f),
         border = androidx.compose.foundation.BorderStroke(1.dp, border),
         modifier = Modifier
             .fillMaxWidth()
