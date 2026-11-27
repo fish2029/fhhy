@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val repository: MainRepository,
-    settings: SettingsDataStore
+    private val settings: SettingsDataStore,
+    private val pyRuntime: com.fanhuatv.python.PyRuntime
 ) : ViewModel() {
 
     private val _config = MutableStateFlow<AppConfig?>(null)
@@ -71,6 +73,20 @@ class AppViewModel @Inject constructor(
 
     init {
         load()
+        scheduleAutoHotUpdate()
+    }
+
+    /** 启动自动热更新：开了开关且填了地址时，后台拉最新脚本，成功后重新加载配置注册源 */
+    private fun scheduleAutoHotUpdate() {
+        viewModelScope.launch {
+            runCatching {
+                val auto = settings.hotUpdateAuto.first()
+                val url = settings.hotUpdateUrl.first()
+                if (!auto || url.isBlank()) return@launch
+                val result = pyRuntime.hotUpdate(url)
+                if (result is Resource.Success) load()
+            }
+        }
     }
 
     /** 切换首页站源：记住用户点的那个站点并重新加载 */

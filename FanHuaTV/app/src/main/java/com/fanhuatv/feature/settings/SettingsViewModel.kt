@@ -175,6 +175,38 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    // ===== 源热更新 =====
+    val hotUpdateUrl: StateFlow<String> = settings.hotUpdateUrl
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    val hotUpdateAuto: StateFlow<Boolean> = settings.hotUpdateAuto
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    /** 保存热更新配置（地址 + 自动拉取开关） */
+    fun saveHotUpdateConfig(url: String, auto: Boolean) {
+        viewModelScope.launch {
+            settings.setHotUpdate(url.trim(), auto)
+            _toast.value = if (url.trim().isBlank()) "热更新配置已清空" else "热更新配置已保存"
+        }
+    }
+
+    /** 立即拉取最新脚本并重新注册源；结果通过 toast 反馈 */
+    fun runHotUpdate() {
+        viewModelScope.launch {
+            val url = settings.hotUpdateUrl.first()
+            if (url.isBlank()) {
+                _toast.value = "请先填写 PY 脚本地址"
+                return@launch
+            }
+            _toast.value = "正在拉取最新脚本…"
+            val result = pyRuntime.hotUpdate(url)
+            _toast.value = when (result) {
+                is Resource.Success -> "热更新完成：${result.data.name}"
+                is Resource.Error -> "热更新失败：${result.message}"
+                else -> "热更新失败"
+            }
+        }
+    }
+
     // ===== PY 脚本导入（三种方式，覆盖手机/电脑/TV Box 目录） =====
 
     /** Android 11+ 是否需要「所有文件访问权限」 */

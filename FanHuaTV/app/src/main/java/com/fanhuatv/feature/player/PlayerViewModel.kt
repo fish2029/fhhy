@@ -46,6 +46,10 @@ class PlayerViewModel @Inject constructor(
     val settings: StateFlow<PlaybackSettings> = settingsStore.playback
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PlaybackSettings())
 
+    /** 界面设置：悬浮小窗开关、弹幕字号/速度/透明度/屏蔽词 */
+    val ui: StateFlow<com.fanhuatv.core.storage.UiSettings> = settingsStore.ui
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), com.fanhuatv.core.storage.UiSettings())
+
     /** 设置倍速：立即生效；rememberSpeed 开启时记忆到设置，下次播放自动应用 */
     fun applySpeed(speed: Float) {
         engine.setSpeed(speed)

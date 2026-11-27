@@ -66,6 +66,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.fanhuatv.player.BilibiliDanmaku
 import com.fanhuatv.player.LivePlayBus
 import com.fanhuatv.ui.theme.Accent
 import com.fanhuatv.ui.theme.AccentDeep
@@ -95,6 +96,7 @@ fun PlayerScreen(
 
     val (url, title, item) = remember { LivePlayBus.consume() }
     val settings by vm.settings.collectAsStateWithLifecycle()
+    val uiSettings by vm.ui.collectAsStateWithLifecycle()
     var isFullscreen by remember { mutableStateOf(false) }
     var playError by remember { mutableStateOf("") }
     var locked by remember { mutableStateOf(false) }
@@ -165,22 +167,38 @@ fun PlayerScreen(
         }
     }
 
-    // 拉取弹幕：换播放地址时重新加载；jar 没给地址或服务没数据就保持空列表
-    LaunchedEffect(danmakuUrl, danmakuOn) {
+    // 弹幕自动匹配：jar 没给弹幕地址时，按剧名+集数去 B 站匹配（每个播放地址只匹配一次）
+    var danmakuMatchedUrl by remember { mutableStateOf("") }
+
+    // 拉取弹幕：jar 给了地址 → 直接拉；没给地址 → 自动匹配 B 站弹幕库
+    LaunchedEffect(danmakuUrl, danmakuOn, currentUrl) {
         danmakuList = emptyList()
         danmakuIdx = 0
         danmakuBullets = emptyList()
-        if (danmakuUrl.isBlank() || !danmakuOn) return@LaunchedEffect
-        val xml = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            runCatching {
-                val conn = java.net.URL(danmakuUrl).openConnection()
-                conn.connectTimeout = 8000
-                conn.readTimeout = 8000
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0")
-                conn.getInputStream().use { it.readBytes().toString(Charsets.UTF_8) }
-            }.getOrDefault("")
+        if (!danmakuOn) {
+            danmakuMatchedUrl = ""
+            return@LaunchedEffect
         }
-        if (xml.isNotBlank()) danmakuList = parseDanmakuXml(xml)
+        if (danmakuUrl.isNotBlank()) {
+            val xml = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                runCatching {
+                    val conn = java.net.URL(danmakuUrl).openConnection()
+                    conn.connectTimeout = 8000
+                    conn.readTimeout = 8000
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0")
+                    conn.getInputStream().use { it.readBytes().toString(Charsets.UTF_8) }
+                }.getOrDefault("")
+            }
+            if (xml.isNotBlank()) danmakuList = applyBlockWords(BilibiliDanmaku.parseDanmakuXml(xml), uiSettings.danmakuBlock)
+        } else if (danmakuMatchedUrl != currentUrl) {
+            danmakuMatchedUrl = currentUrl
+            gestureTip = "正在匹配弹幕…"
+            val epName = LivePlayBus.pendingItem?.episodes
+                ?.firstOrNull { it.playableUrl == currentUrl }?.name.orEmpty()
+            val r = BilibiliDanmaku.match(item?.name ?: title, epName)
+            danmakuList = applyBlockWords(r.list, uiSettings.danmakuBlock)
+            gestureTip = r.message
+        }
     }
 
     // 弹幕发射：跟随播放进度触发；回退超过 3 秒时重新定位起点
@@ -372,6 +390,24 @@ fun PlayerScreen(
         gestureTip = "已刷新"
     }
 
+    // 悬浮小窗（画中画）：手动按钮与「退出播放自动变小窗」开关共用；API 26 以下不支持
+    fun enterPip() {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return
+        runCatching {
+            activity?.enterPictureInPictureMode(
+                android.app.PictureInPictureParams.Builder()
+                    .setAspectRatio(android.util.Rational(16, 9))
+                    .build()
+            )
+        }
+    }
+
+    // 退出自动小窗：开启后按返回键不退出播放页，改为进入画中画继续播
+    androidx.activity.compose.BackHandler(
+        enabled = uiSettings.autoPip == true &&
+                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O
+    ) { enterPip() }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -493,11 +529,17 @@ fun PlayerScreen(
                 )
             }
 
-            // 弹幕层：画面上部滚动评论，不响应触摸、不挡手势
+            // 弹幕层：画面上部滚动评论，不响应触摸、不挡手势；字号/速度/透明度跟设置走
             if (danmakuOn && danmakuBullets.isNotEmpty()) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     danmakuBullets.forEach { b ->
-                        DanmakuBulletView(text = b.text, lane = b.lane) {
+                        DanmakuBulletView(
+                            text = b.text,
+                            lane = b.lane,
+                            sizeSp = uiSettings.danmakuSize ?: 14,
+                            durationSec = uiSettings.danmakuSpeed ?: 9,
+                            alphaPct = uiSettings.danmakuAlpha ?: 100
+                        ) {
                             danmakuBullets = danmakuBullets.filterNot { it.id == b.id }
                         }
                     }
@@ -720,11 +762,7 @@ fun PlayerScreen(
                             osdButton(if (danmakuOn) "弹幕·开" else "弹幕·关") {
                                 danmakuOn = !danmakuOn
                                 if (!danmakuOn) danmakuBullets = emptyList()
-                                gestureTip = when {
-                                    danmakuUrl.isBlank() -> "当前源没有弹幕"
-                                    danmakuOn -> "弹幕已开启"
-                                    else -> "弹幕已关闭"
-                                }
+                                gestureTip = if (danmakuOn) "弹幕已开启" else "弹幕已关闭"
                             }
                         }
                         osdButton("选集") { showEpisodeDialog = true }
@@ -956,6 +994,11 @@ fun PlayerScreen(
                 Text(title, color = com.fanhuatv.ui.theme.TextPrimary, modifier = Modifier.weight(1f))
                 TextButton(onClick = { showSpeedDialog = true }) {
                     Text("${currentSpeed}x", color = com.fanhuatv.ui.theme.TextPrimary, fontWeight = FontWeight.Bold)
+                }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    IconButton(onClick = { enterPip() }) {
+                        Icon(Icons.Filled.PictureInPicture, contentDescription = "悬浮小窗", tint = Color.White)
+                    }
                 }
                 IconButton(onClick = {
                     isFullscreen = !isFullscreen
@@ -1210,23 +1253,14 @@ private fun formatTime(ms: Long): String {
 /** 弹幕单条：id 用于动画结束移除，lane 决定滚动行 */
 private data class DanmakuBullet(val id: Long, val text: String, val lane: Int)
 
-/** 解析 Bilibili 格式弹幕 XML：<d p="时间,模式,字号,颜色,...">内容</d>，按出现时间排序 */
-private fun parseDanmakuXml(xml: String): List<Pair<Long, String>> {
-    return runCatching {
-        Regex("<d\\s+p=\"([^\"]+)\"[^>]*>(.*?)</d>", RegexOption.DOT_MATCHES_ALL)
-            .findAll(xml)
-            .mapNotNull { m ->
-                val sec = m.groupValues[1].substringBefore(',').toDoubleOrNull() ?: return@mapNotNull null
-                val text = m.groupValues[2]
-                    .replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
-                    .replace("&#39;", "'").replace("&amp;", "&")
-                    .replace(Regex("<[^>]*>"), "")
-                    .trim()
-                if (text.isEmpty()) null else ((sec * 1000).toLong() to text)
-            }
-            .sortedBy { it.first }
-            .toList()
-    }.getOrDefault(emptyList())
+/** 解析 Bilibili 格式弹幕 XML：统一走 BilibiliDanmaku.parseDanmakuXml（jar 直链与 B 站匹配共用） */
+
+/** 按设置里的屏蔽词过滤弹幕（逗号/顿号/空格分隔） */
+private fun applyBlockWords(list: List<Pair<Long, String>>, blockRaw: String?): List<Pair<Long, String>> {
+    val words = blockRaw?.split(',', '，', '、', ' ', '\n')
+        ?.map { it.trim() }?.filter { it.isNotBlank() }.orEmpty()
+    if (words.isEmpty()) return list
+    return list.filter { (_, text) -> words.none { text.contains(it) } }
 }
 
 /** 单句歌词：time 为出现时间（毫秒） */
@@ -1255,21 +1289,28 @@ private fun parseLrc(text: String): List<LrcLine> {
     }.getOrDefault(emptyList())
 }
 
-/** 单条滚动弹幕：从右侧飘到左侧约 9 秒，结束后回调移除 */
+/** 单条滚动弹幕：从右侧飘到左侧（跨屏时长跟设置走），结束后回调移除 */
 @Composable
-private fun DanmakuBulletView(text: String, lane: Int, onDone: () -> Unit) {
+private fun DanmakuBulletView(
+    text: String,
+    lane: Int,
+    sizeSp: Int,
+    durationSec: Int,
+    alphaPct: Int,
+    onDone: () -> Unit
+) {
     val density = LocalDensity.current
     val screenWPx = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-    val textWPx = with(density) { (text.length * 15).dp.toPx() }
+    val textWPx = with(density) { (text.length * sizeSp).dp.toPx() }
     val progress = remember { Animatable(1f) }
     LaunchedEffect(Unit) {
-        progress.animateTo(0f, tween(durationMillis = 9000, easing = LinearEasing))
+        progress.animateTo(0f, tween(durationMillis = durationSec * 1000, easing = LinearEasing))
         onDone()
     }
     Text(
         text = text,
-        color = com.fanhuatv.ui.theme.TextPrimary,
-        fontSize = 14.sp,
+        color = com.fanhuatv.ui.theme.TextPrimary.copy(alpha = alphaPct / 100f),
+        fontSize = sizeSp.sp,
         maxLines = 1,
         style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, blurRadius = 8f)),
         modifier = Modifier.offset {

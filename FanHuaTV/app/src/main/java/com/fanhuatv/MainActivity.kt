@@ -26,6 +26,23 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var settings: SettingsDataStore
 
+    /** 是否处于画中画模式：用于区分「用户关闭小窗」和「正常离开」 */
+    private var wasInPip = false
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        wasInPip = isInPictureInPictureMode
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // 从小窗被用户关掉（展开回全屏不会触发 onStop）：结束 Activity，
+        // 避免回到已释放播放器的播放页黑屏
+        if (wasInPip && !isChangingConfigurations) {
+            finish()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

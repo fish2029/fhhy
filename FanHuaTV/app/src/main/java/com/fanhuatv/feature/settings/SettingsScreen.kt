@@ -48,6 +48,9 @@ fun SettingsScreen(
         ActivityResultContracts.OpenDocument()
     ) { uri -> uri?.let { vm.importConfig(it) } }
 
+    var showHotUpdate by remember { mutableStateOf(false) }
+    var showDanmaku by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = { SubTopBar("设置", onBack = { navController.popBackStack() }) },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -69,10 +72,14 @@ fun SettingsScreen(
                 SwitchRow("PY 脚本优先", "脚本解析优先于手动 JSON 接口", priority) {
                     vm.setScriptPriority(it)
                 }
+                SettingsNavRow(Icons.Filled.Sync, "源热更新", "填 PY 脚本远程地址，改源不发包") {
+                    showHotUpdate = true
+                }
             }
 
             SettingsSection("播放设置") {
                 val playback by vm.playback.collectAsStateWithLifecycle()
+                val ui by vm.ui.collectAsStateWithLifecycle()
                 OptionRow("播放器内核", playback.kernel, listOf("media3", "ijk", "system")) {
                     vm.updatePlayback { p -> p.copy(kernel = it) }
                 }
@@ -93,6 +100,12 @@ fun SettingsScreen(
                 }
                 OptionRow("画面比例", playback.scaleMode, listOf("fit", "fill", "zoom")) {
                     vm.updatePlayback { p -> p.copy(scaleMode = it) }
+                }
+                SwitchRow("退出播放自动变小窗", "按返回键进入悬浮小窗继续播放", ui.autoPip == true) {
+                    vm.updateUi { u -> u.copy(autoPip = it) }
+                }
+                SettingsNavRow(Icons.Filled.Subtitles, "弹幕设置", "字号 / 速度 / 透明度 / 屏蔽词") {
+                    showDanmaku = true
                 }
             }
 
@@ -147,6 +160,93 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(24.dp))
         }
+    }
+
+    // 源热更新弹窗：填远程地址 + 自动拉取开关，保存后可立即刷新
+    if (showHotUpdate) {
+        val savedUrl by vm.hotUpdateUrl.collectAsStateWithLifecycle()
+        val savedAuto by vm.hotUpdateAuto.collectAsStateWithLifecycle()
+        var urlInput by remember(showHotUpdate) { mutableStateOf(savedUrl) }
+        var autoInput by remember(showHotUpdate) { mutableStateOf(savedAuto) }
+        AlertDialog(
+            onDismissRequest = { showHotUpdate = false },
+            title = { Text("源热更新") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = urlInput,
+                        onValueChange = { urlInput = it },
+                        label = { Text("PY 脚本地址（网盘 / GitHub 直链）") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Switch(checked = autoInput, onCheckedChange = { autoInput = it })
+                        Spacer(Modifier.width(10.dp))
+                        Text("启动时自动拉取最新脚本", fontSize = 13.sp)
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "已导入过该地址的脚本会原位覆盖，站点注册不变，改源无需重新安装",
+                        color = TextSecondary, fontSize = 11.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.saveHotUpdateConfig(urlInput, autoInput)
+                    if (urlInput.isNotBlank()) vm.runHotUpdate()
+                    showHotUpdate = false
+                }) { Text("保存并刷新") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    vm.saveHotUpdateConfig(urlInput, autoInput)
+                    showHotUpdate = false
+                }) { Text("仅保存") }
+            }
+        )
+    }
+
+    // 弹幕设置弹窗：字号 / 跨屏速度 / 透明度 / 屏蔽词
+    if (showDanmaku) {
+        val savedUi by vm.ui.collectAsStateWithLifecycle()
+        var sizeInput by remember(showDanmaku) { mutableStateOf((savedUi.danmakuSize ?: 14).coerceIn(10, 24)) }
+        var speedInput by remember(showDanmaku) { mutableStateOf((savedUi.danmakuSpeed ?: 9).coerceIn(5, 15)) }
+        var alphaInput by remember(showDanmaku) { mutableStateOf((savedUi.danmakuAlpha ?: 100).coerceIn(20, 100)) }
+        var blockInput by remember(showDanmaku) { mutableStateOf(savedUi.danmakuBlock ?: "") }
+        AlertDialog(
+            onDismissRequest = { showDanmaku = false },
+            title = { Text("弹幕设置") },
+            text = {
+                Column {
+                    Text("字号 ${sizeInput}sp", fontSize = 13.sp)
+                    Slider(value = sizeInput.toFloat(), onValueChange = { sizeInput = it.toInt() }, valueRange = 10f..24f, steps = 6)
+                    Text("跨屏速度 ${speedInput} 秒（越小越快）", fontSize = 13.sp)
+                    Slider(value = speedInput.toFloat(), onValueChange = { speedInput = it.toInt() }, valueRange = 5f..15f, steps = 9)
+                    Text("不透明度 $alphaInput%", fontSize = 13.sp)
+                    Slider(value = alphaInput.toFloat(), onValueChange = { alphaInput = it.toInt() }, valueRange = 20f..100f, steps = 15)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = blockInput,
+                        onValueChange = { blockInput = it },
+                        label = { Text("屏蔽词（用逗号或顿号分隔）") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 2
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.updateUi { u -> u.copy(danmakuSize = sizeInput, danmakuSpeed = speedInput, danmakuAlpha = alphaInput, danmakuBlock = blockInput.trim()) }
+                    showDanmaku = false
+                }) { Text("保存") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDanmaku = false }) { Text("取消") }
+            }
+        )
     }
 }
 

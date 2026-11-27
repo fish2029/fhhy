@@ -57,7 +57,14 @@ data class UiSettings(
     val continueWatching: Boolean? = null,  // 首页「继续观看」一栏，null=true
     val buttonStyle: String? = null,        // 按钮样式：square=方角 | rounded=圆角 | capsule=胶囊，null=capsule
     val textColor: String? = null,          // 全局文字颜色：white | warm | gold | blue | purple，null=white
-    val bgColor: String? = null             // 全局背景颜色：default | graphite | navy | forest 等，null=default
+    val bgColor: String? = null,            // 全局背景颜色：default | graphite | navy | forest 等，null=default
+    // 悬浮小窗：退出播放（返回键）自动进入画中画继续播放，null=false
+    val autoPip: Boolean? = null,
+    // ===== 弹幕设置（null=默认值，兼容旧存档） =====
+    val danmakuSize: Int? = null,           // 字号 sp，null=14
+    val danmakuSpeed: Int? = null,          // 跨屏秒数，null=9
+    val danmakuAlpha: Int? = null,          // 不透明度百分比 20~100，null=100
+    val danmakuBlock: String? = null        // 屏蔽词，逗号/顿号分隔，null=无
 )
 
 /** 所有设置项的 DataStore 仓库 */
@@ -78,6 +85,8 @@ class SettingsDataStore @Inject constructor(
         val HOME_SITE = stringPreferencesKey("home_site")   // 用户手动选中的站源标识，空=没选
         val PY_URL_MAP = stringPreferencesKey("py_url_map")   // .py 地址 -> 已导入脚本 ID
         val PY_EXT_MAP = stringPreferencesKey("py_ext_map")   // 脚本 ID -> TVBox ext 参数
+        val HOTUPDATE_URL = stringPreferencesKey("hotupdate_url")   // 源热更新：PY 脚本远程地址
+        val HOTUPDATE_AUTO = booleanPreferencesKey("hotupdate_auto") // 源热更新：启动自动拉取
         val CONFIG_CLEARED_V21 = booleanPreferencesKey("config_cleared_v21")
     }
 
@@ -202,6 +211,19 @@ class SettingsDataStore @Inject constructor(
     }
 
     suspend fun pyExtOf(scriptId: String): String = pyExtMap.first()[scriptId].orEmpty()
+
+    /** 源热更新：PY 脚本远程地址（网盘 / GitHub 直链） */
+    val hotUpdateUrl: Flow<String> = context.dataStore.data.map { it[Keys.HOTUPDATE_URL] ?: "" }
+
+    /** 源热更新：启动时自动拉取开关 */
+    val hotUpdateAuto: Flow<Boolean> = context.dataStore.data.map { it[Keys.HOTUPDATE_AUTO] ?: false }
+
+    suspend fun setHotUpdate(url: String, auto: Boolean) {
+        context.dataStore.edit {
+            it[Keys.HOTUPDATE_URL] = url
+            it[Keys.HOTUPDATE_AUTO] = auto
+        }
+    }
 
     suspend fun setConfigSources(sources: List<ConfigSource>) {
         context.dataStore.edit { it[Keys.CONFIG_SOURCES] = gson.toJson(sources) }

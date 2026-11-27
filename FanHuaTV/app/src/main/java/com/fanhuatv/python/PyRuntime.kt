@@ -161,6 +161,32 @@ class PyRuntime @Inject constructor(
         }
     }
 
+    /**
+     * 源热更新：按配置的远程地址拉最新脚本，改源不发包。
+     * 该地址导入过（pyUrlMap 有记录）→ 原位覆盖同一脚本 ID，站点注册不变；
+     * 首次配置 → 走正常导入并绑定地址，之后每次刷新都覆盖同一份。
+     */
+    suspend fun hotUpdate(url: String): Resource<ScriptMeta> {
+        if (url.isBlank()) return Resource.Error("未配置脚本地址")
+        val content = try {
+            val resp = api.fetchRaw(url)
+            if (!resp.isSuccessful) return Resource.Error("HTTP ${resp.code()}")
+            resp.body()?.string().orEmpty()
+        } catch (e: Exception) {
+            return Resource.Error(e.message ?: "拉取脚本失败")
+        }
+        if (content.isBlank()) return Resource.Error("脚本内容为空")
+        val existingId = settings.pyUrlMap.first()[url]
+        return if (existingId != null && scriptDao.find(existingId) != null) {
+            reimport(existingId, content)
+        } else {
+            val name = url.substringAfterLast('/').removeSuffix(".py").ifBlank { "script" }
+            val result = importScript(name, content)
+            if (result is Resource.Success) settings.putPySite(url, result.data.id, "")
+            result
+        }
+    }
+
     suspend fun setEnabled(id: String, enabled: Boolean) = scriptDao.setEnabled(id, enabled)
     suspend fun delete(id: String) {
         scriptDao.find(id)?.let { runCatching { File(it.filePath).delete() } }
