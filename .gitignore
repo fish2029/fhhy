@@ -100,4 +100,5 @@ lint/tmp/
 *.md
 .temp/
 output-metadata.json
-.py/
+.py/dist/
+.nfs*
