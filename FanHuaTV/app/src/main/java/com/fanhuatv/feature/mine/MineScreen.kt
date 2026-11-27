@@ -80,7 +80,7 @@ fun MineScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             // ===== 1. 我的内容 =====
-            GroupCard("我的内容") {
+            GroupCard("我的片库") {
                 NavRow(Icons.Filled.History, "观看历史", "接着上次继续看") {
                     navController.navigate(Routes.HISTORY)
                 }
@@ -90,7 +90,7 @@ fun MineScreen(
             }
 
             // ===== 2. 核心配置 =====
-            GroupCard("核心配置") {
+            GroupCard("源核引擎") {
                 NavRow(Icons.Filled.Code, "PY 脚本管理", "导入 .py 自动注册数据源（优先于 JSON）") {
                     navController.navigate(Routes.PY_SCRIPT)
                 }
@@ -106,7 +106,7 @@ fun MineScreen(
             }
 
             // ===== 播放 =====
-            GroupCard("播放") {
+            GroupCard("观影舱") {
                 SwitchRow(Icons.Filled.Fullscreen, "退出播放自动变小窗", "按返回键进入悬浮小窗继续播放", ui.autoPip == true) { on ->
                     vm.updateUi { it.copy(autoPip = on) }
                 }
@@ -116,7 +116,7 @@ fun MineScreen(
             }
 
             // ===== 3. 安全调试 =====
-            GroupCard("安全调试") {
+            GroupCard("安全护盾") {
                 NavRow(Icons.Filled.Security, "安全状态", "签名校验 / 防二次打包") {
                     navController.navigate(Routes.SECURITY)
                 }
@@ -126,7 +126,7 @@ fun MineScreen(
             }
 
             // ===== 4. 主题色彩 =====
-            GroupCard("主题色彩") {
+            GroupCard("颜值工坊") {
                 // 外观模式：三段胶囊（跟随系统 / 浅色日间 / 深色夜间），切换即时生效
                 SettingHeader(Icons.Filled.Palette, "外观模式", current = modeLabel(ui.themeMode))
                 SegmentedCapsule(
@@ -168,7 +168,7 @@ fun MineScreen(
             }
 
             // ===== 5. 导航首页 =====
-            GroupCard("导航首页") {
+            GroupCard("门面定制") {
                 OptionRow(Icons.Filled.ViewWeek, "底部导航栏形态", current = bottomBarLabel(ui.bottomBarStyle ?: "labeled")) { close ->
                     DropdownItem("图标+文字") { vm.updateUi { it.copy(bottomBarStyle = "labeled") }; close() }
                     DropdownItem("仅图标") { vm.updateUi { it.copy(bottomBarStyle = "icons") }; close() }
@@ -195,7 +195,7 @@ fun MineScreen(
             }
 
             // ===== 6. 系统 =====
-            GroupCard("系统") {
+            GroupCard("系统舱") {
                 SwitchRow(Icons.Filled.Category, "智能分类", "站源自动归类：JAR内站点 / PY站点 / 音乐 / 短剧", ui.smartCategory) { on ->
                     vm.updateUi { it.copy(smartCategory = on) }
                 }
