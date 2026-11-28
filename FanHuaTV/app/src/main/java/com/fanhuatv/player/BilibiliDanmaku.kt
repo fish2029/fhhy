@@ -49,7 +49,7 @@ object BilibiliDanmaku {
     }
 
     /** 去掉剧名里的清晰度/来源后缀等噪音，提高搜索命中率 */
-    private fun cleanTitle(raw: String): String = raw
+    internal fun cleanTitle(raw: String): String = raw
         .replace(Regex("\\[.*?]|【.*?】"), "")
         .replace(Regex("\\d{3,4}[PpKk]|高清|蓝光|国语|粤语|4K|1080P|720P", RegexOption.IGNORE_CASE), "")
         .trim()

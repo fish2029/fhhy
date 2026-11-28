@@ -66,6 +66,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.fanhuatv.player.AutoDanmaku
 import com.fanhuatv.player.BilibiliDanmaku
 import com.fanhuatv.player.LivePlayBus
 import com.fanhuatv.ui.theme.Accent
@@ -109,8 +110,9 @@ fun PlayerScreen(
     var currentUrl by remember { mutableStateOf(url) }
 
     // 弹幕：地址来自 jar 播放结果的 danmaku 字段（本地代理转发 jar 内弹幕服务）。
-    // jar 没给地址时自动按剧名+集数匹配 B 站弹幕库。开关默认开、记忆到设置；
-    // 不想看在播放页 OSD 里一键关，网盘/冷门源匹配不到就静默无弹幕
+    // jar 没给地址时，所有源统一先走本地 5266 弹幕引擎按剧名+集数匹配（py 源/网盘/站内通用），
+    // 引擎没匹配到再降级 B 站兜底。开关默认开、记忆到设置；
+    // 不想看在播放页 OSD 里一键关，匹配不到就静默无弹幕
     var danmakuLocal by remember { mutableStateOf<Boolean?>(null) }
     val danmakuOn = danmakuLocal ?: (uiSettings.danmakuOn ?: true)
     val danmakuUrl = remember { LivePlayBus.pendingDanmaku }
@@ -168,10 +170,10 @@ fun PlayerScreen(
         }
     }
 
-    // 弹幕自动匹配：jar 没给弹幕地址时，按剧名+集数去 B 站匹配（每个播放地址只匹配一次）
+    // 弹幕自动匹配：jar 没给弹幕地址时，先走本地 5266 引擎、再降级 B 站（每个播放地址只匹配一次）
     var danmakuMatchedUrl by remember { mutableStateOf("") }
 
-    // 拉取弹幕：jar 给了地址 → 直接拉；没给地址 → 自动匹配 B 站弹幕库
+    // 拉取弹幕：jar 给了地址 → 直接拉；没给地址 → 本地 5266 引擎匹配，空了再 B 站兜底
     LaunchedEffect(danmakuUrl, danmakuOn, currentUrl) {
         danmakuList = emptyList()
         danmakuIdx = 0
@@ -196,9 +198,18 @@ fun PlayerScreen(
             gestureTip = "正在匹配弹幕…"
             val epName = LivePlayBus.pendingItem?.episodes
                 ?.firstOrNull { it.playableUrl == currentUrl }?.name.orEmpty()
-            val r = BilibiliDanmaku.match(item?.name ?: title, epName)
-            danmakuList = applyBlockWords(r.list, uiSettings.danmakuBlock)
-            gestureTip = r.message
+            val epNum = Regex("\\d+").findAll(epName).lastOrNull()?.value?.toIntOrNull() ?: 1
+            // 首选：本地 5266 弹幕引擎（所有源通用，不依赖 B 站）
+            var list = AutoDanmaku.fetch(item?.name ?: title, epNum)
+            var msg = if (list.isNotEmpty()) "已匹配 ${list.size} 条弹幕" else ""
+            // 兜底：引擎没匹配到时再试 B 站
+            if (list.isEmpty()) {
+                val r = BilibiliDanmaku.match(item?.name ?: title, epName)
+                list = r.list
+                msg = r.message
+            }
+            danmakuList = applyBlockWords(list, uiSettings.danmakuBlock)
+            gestureTip = msg
         }
     }
 
