@@ -61,6 +61,7 @@ data class UiSettings(
     // 悬浮小窗：退出播放（返回键）自动进入画中画继续播放，null=false
     val autoPip: Boolean? = null,
     // ===== 弹幕设置（null=默认值，兼容旧存档） =====
+    val danmakuOn: Boolean? = null,         // 弹幕开关，null=true（默认开）
     val danmakuSize: Int? = null,           // 字号 sp，null=14
     val danmakuSpeed: Int? = null,          // 跨屏秒数，null=9
     val danmakuAlpha: Int? = null,          // 不透明度百分比 20~100，null=100

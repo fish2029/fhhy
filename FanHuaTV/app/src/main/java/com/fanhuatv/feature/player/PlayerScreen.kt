@@ -109,9 +109,10 @@ fun PlayerScreen(
     var currentUrl by remember { mutableStateOf(url) }
 
     // 弹幕：地址来自 jar 播放结果的 danmaku 字段（本地代理转发 jar 内弹幕服务）。
-    // 默认关闭：网盘/冷门源根本没有弹幕，自动拉只会触发 jar 内「弹幕加载失败」
-    // 的垃圾 toast；用户想开再手动打开，此时才真正去拉取
-    var danmakuOn by remember { mutableStateOf(false) }
+    // jar 没给地址时自动按剧名+集数匹配 B 站弹幕库。开关默认开、记忆到设置；
+    // 不想看在播放页 OSD 里一键关，网盘/冷门源匹配不到就静默无弹幕
+    var danmakuLocal by remember { mutableStateOf<Boolean?>(null) }
+    val danmakuOn = danmakuLocal ?: (uiSettings.danmakuOn ?: true)
     val danmakuUrl = remember { LivePlayBus.pendingDanmaku }
     var danmakuList by remember { mutableStateOf<List<Pair<Long, String>>>(emptyList()) }
     var danmakuIdx by remember { mutableStateOf(0) }
@@ -760,9 +761,10 @@ fun PlayerScreen(
                                 gestureTip = if (!settings.autoNext) "播完自动下一集已开启" else "播完自动下一集已关闭"
                             }
                             osdButton(if (danmakuOn) "弹幕·开" else "弹幕·关") {
-                                danmakuOn = !danmakuOn
+                                danmakuLocal = !danmakuOn
+                                vm.updateUi { it.copy(danmakuOn = !danmakuOn) }
                                 if (!danmakuOn) danmakuBullets = emptyList()
-                                gestureTip = if (danmakuOn) "弹幕已开启" else "弹幕已关闭"
+                                gestureTip = if (!danmakuOn) "弹幕已开启" else "弹幕已关闭"
                             }
                         }
                         osdButton("选集") { showEpisodeDialog = true }

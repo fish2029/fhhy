@@ -159,6 +159,28 @@ object BilibiliDanmaku {
         MessageDigest.getInstance("MD5").digest(s.toByteArray(Charsets.UTF_8))
             .joinToString("") { "%02x".format(it) }
 
+    /** B 站风控 cookie（buvid3/buvid4）：搜索接口匿名请求没有它会被 412 拦截，
+     *  表现就是永远「未找到匹配视频」。finger/spi 匿名可取，进程内缓存一份。 */
+    @Volatile
+    private var buvidCookie: String? = null
+
+    private fun getBuvidCookie(): String? {
+        buvidCookie?.let { return it }
+        return runCatching {
+            val conn = java.net.URL("https://api.bilibili.com/x/frontend/finger/spi").openConnection() as java.net.HttpURLConnection
+            conn.connectTimeout = 8000
+            conn.readTimeout = 8000
+            conn.setRequestProperty("User-Agent", UA)
+            if (conn.responseCode != 200) return@runCatching null
+            val body = conn.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
+            val obj = com.google.gson.JsonParser.parseString(body).asJsonObject
+            val b3 = obj.getAsJsonObject("data")?.get("b_3")?.takeIf { !it.isJsonNull }?.asString.orEmpty()
+            val b4 = obj.getAsJsonObject("data")?.get("b_4")?.takeIf { !it.isJsonNull }?.asString.orEmpty()
+            if (b3.isBlank()) return@runCatching null
+            "buvid3=$b3; buvid4=$b4".also { buvidCookie = it }
+        }.getOrNull()
+    }
+
     private fun httpText(url: String): String? = httpBytes(url)?.toString(Charsets.UTF_8)
 
     private fun httpBytes(url: String): ByteArray? = runCatching {
@@ -167,6 +189,7 @@ object BilibiliDanmaku {
         conn.readTimeout = 8000
         conn.setRequestProperty("User-Agent", UA)
         conn.setRequestProperty("Referer", "https://www.bilibili.com/")
+        getBuvidCookie()?.let { conn.setRequestProperty("Cookie", it) }
         if (conn.responseCode != 200) return@runCatching null
         conn.inputStream.use { it.readBytes() }
     }.getOrNull()

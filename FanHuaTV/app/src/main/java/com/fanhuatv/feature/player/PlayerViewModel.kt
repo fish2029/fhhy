@@ -50,6 +50,11 @@ class PlayerViewModel @Inject constructor(
     val ui: StateFlow<com.fanhuatv.core.storage.UiSettings> = settingsStore.ui
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), com.fanhuatv.core.storage.UiSettings())
 
+    /** 播放页直接改界面设置（弹幕开关记忆用） */
+    fun updateUi(transform: (com.fanhuatv.core.storage.UiSettings) -> com.fanhuatv.core.storage.UiSettings) {
+        viewModelScope.launch { settingsStore.setUi(transform(ui.value)) }
+    }
+
     /** 设置倍速：立即生效；rememberSpeed 开启时记忆到设置，下次播放自动应用 */
     fun applySpeed(speed: Float) {
         engine.setSpeed(speed)
