@@ -144,7 +144,7 @@ fun AppNavHost(appVm: AppViewModel = hiltViewModel()) {
             composable(Routes.PY_SCRIPT) { PyScriptScreen(navController, appVm) }
             composable(Routes.HISTORY) { HistoryScreen(navController, asTab = true) }
             composable(Routes.FAVORITE) { HistoryScreen(navController, favoriteOnly = true) }
-            composable(Routes.POSTER_WALL) { com.fanhuatv.feature.history.PosterWallScreen(navController) }
+            composable(Routes.POSTER_WALL) { com.fanhuatv.feature.history.PosterWallScreen(config, navController) }
             composable(Routes.ABOUT) { AboutScreen(navController) }
             composable(Routes.SECURITY) { SecurityScreen(navController) }
             composable(Routes.CRASH_LOG) { CrashLogScreen(navController) }

@@ -87,7 +87,7 @@ fun MineScreen(
                 NavRow(Icons.Filled.Favorite, "我的收藏", "收藏的影片都在这") {
                     navController.navigate(Routes.FAVORITE)
                 }
-                NavRow(Icons.Filled.GridView, "观影海报墙", "看过的剧铺成满屏海报，点开续播") {
+                NavRow(Icons.Filled.GridView, "影视海报墙", "满屏海报随便逛，点开就看") {
                     navController.navigate(Routes.POSTER_WALL)
                 }
             }
