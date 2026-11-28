@@ -190,6 +190,17 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    // ===== TMDB 配置（影视海报墙） =====
+    val tmdbKey: StateFlow<String> = settings.tmdbKey
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    fun saveTmdbKey(key: String) {
+        viewModelScope.launch {
+            settings.setTmdbKey(key)
+            _toast.value = if (key.isBlank()) "TMDB Key 已清空" else "TMDB Key 已保存"
+        }
+    }
+
     /** 立即拉取最新脚本并重新注册源；结果通过 toast 反馈 */
     fun runHotUpdate() {
         viewModelScope.launch {

@@ -91,6 +91,7 @@ class SettingsDataStore @Inject constructor(
         val AI_URL = stringPreferencesKey("ai_url")     // AI 修源：接口地址（OpenAI 兼容 chat/completions）
         val AI_KEY = stringPreferencesKey("ai_key")     // AI 修源：接口密钥
         val AI_MODEL = stringPreferencesKey("ai_model") // AI 修源：模型名
+        val TMDB_KEY = stringPreferencesKey("tmdb_key") // 影视海报墙：TMDB API Key
         val CONFIG_CLEARED_V21 = booleanPreferencesKey("config_cleared_v21")
     }
 
@@ -227,6 +228,13 @@ class SettingsDataStore @Inject constructor(
             it[Keys.HOTUPDATE_URL] = url
             it[Keys.HOTUPDATE_AUTO] = auto
         }
+    }
+
+    /** 影视海报墙：TMDB API Key */
+    val tmdbKey: Flow<String> = context.dataStore.data.map { it[Keys.TMDB_KEY] ?: "" }
+
+    suspend fun setTmdbKey(key: String) {
+        context.dataStore.edit { it[Keys.TMDB_KEY] = key.trim() }
     }
 
     /** AI 修源：接口地址 / 密钥 / 模型名（OpenAI 兼容格式） */

@@ -35,6 +35,26 @@ class AppViewModel @Inject constructor(
     suspend fun loadCategoryPage(tid: String, pg: String, scriptId: String): Resource<List<com.fanhuatv.core.model.VodItem>> =
         repository.loadCategory(tid, pg, scriptId)
 
+    /** 影视海报墙用：拿 TMDB 片名去全部订阅源里搜能播的版本；搜索结束后回调最优结果（片名完全匹配优先） */
+    fun matchLocalSource(title: String, onDone: (com.fanhuatv.core.model.VodItem?) -> Unit) {
+        viewModelScope.launch {
+            var best: com.fanhuatv.core.model.VodItem? = null
+            runCatching {
+                repository.search(title, "", recordHistory = false) { batch ->
+                    if (best == null) {
+                        best = batch.firstOrNull { it.title == title || it.displayTitle == title }
+                            ?: batch.firstOrNull()
+                    } else if (best?.title != title && best?.displayTitle != title) {
+                        // 已有近似结果时，等完全匹配的来了再替换
+                        val exact = batch.firstOrNull { it.title == title || it.displayTitle == title }
+                        if (exact != null) best = exact
+                    }
+                }
+            }
+            onDone(best)
+        }
+    }
+
     private val _status = MutableStateFlow<Resource<AppConfig>>(Resource.Loading)
     val status: StateFlow<Resource<AppConfig>> = _status.asStateFlow()
 
