@@ -21,6 +21,7 @@ object Routes {
     const val PY_SCRIPT = "py_script"
     const val HISTORY = "history"
     const val FAVORITE = "favorite"
+    const val POSTER_WALL = "poster_wall"
     const val ABOUT = "about"
     const val SECURITY = "security"
     const val CRASH_LOG = "crash_log"
