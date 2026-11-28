@@ -188,7 +188,7 @@ fun HomeScreen(
                     }
 
                     val homeItems = config?.homeItems.orEmpty()
-                    if (tmdbKey.isBlank() && homeItems.isEmpty() && config?.categories?.isNotEmpty() == true) {
+                    if (homeItems.isEmpty() && config?.categories?.isNotEmpty() == true) {
                         Text(
                             "当前脚本未提供推荐影片，可点上方分类查看",
                             color = com.fanhuatv.ui.theme.TextSecondary,
@@ -197,21 +197,7 @@ fun HomeScreen(
                         )
                     }
                     com.fanhuatv.player.LivePlayBus.rememberItems(homeItems)
-                    // TMDB 模式：格子走热门榜；否则用订阅源推荐
-                    if (tmdbKey.isNotBlank()) {
-                        BoxWithConstraints(modifier = Modifier.weight(1f).clipToBounds()) {
-                            val gridColumns = (uiSettings.posterColumns ?: 3).coerceIn(2, 4)
-                            TmdbGrid(tmdbItems, tmdbMatching, gridColumns, uiSettings.posterInfo != "title") { tmdbMatch(it) }
-                            if (tmdbMatching) {
-                                Box(
-                                    Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)),
-                                    Alignment.Center
-                                ) {
-                                    Text("匹配片源中…", color = Color.White, fontSize = 15.sp)
-                                }
-                            }
-                        }
-                    } else {
+                    // 影片格子保持原版订阅源推荐，不随 TMDB 改动
                     // 网格占满首页剩余空间：两排卡片 + 行间距刚好占满，
                     // 卡片高度按剩余空间反算——不管轮播图开关、不管几列，
                     // 打开首页两排都完整显示，不出头、不被切
@@ -248,7 +234,6 @@ fun HomeScreen(
                             )
                         }
                         }
-                    }
                     }
                 }
             }
