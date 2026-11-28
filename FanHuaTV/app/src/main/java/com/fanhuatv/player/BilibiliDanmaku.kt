@@ -34,12 +34,17 @@ object BilibiliDanmaku {
         runCatching {
             val keyword = cleanTitle(title)
             if (keyword.isBlank()) return@runCatching Result(emptyList(), "片名无效")
-            val bvid = searchVideo(keyword) ?: return@runCatching Result(emptyList(), "未找到匹配视频")
-            val cid = pickCid(bvid, episode)
-            if (cid <= 0L) return@runCatching Result(emptyList(), "未取到分集信息")
-            val xml = fetchDanmakuXml(cid) ?: return@runCatching Result(emptyList(), "弹幕拉取失败")
-            val list = parseDanmakuXml(xml)
-            Result(list, if (list.isEmpty()) "弹幕为空" else "已匹配 ${list.size} 条弹幕")
+            val candidates = searchCandidates(keyword)
+            if (candidates.isEmpty()) return@runCatching Result(emptyList(), "未找到匹配视频")
+            // 最多试 3 个候选：正片合集也可能没弹幕（搬运资源常见），换下一个碰运气
+            for (bvid in candidates.take(3)) {
+                val cid = pickCid(bvid, episode)
+                if (cid <= 0L) continue
+                val xml = fetchDanmakuXml(cid) ?: continue
+                val list = parseDanmakuXml(xml)
+                if (list.isNotEmpty()) return@runCatching Result(list, "已匹配 ${list.size} 条弹幕")
+            }
+            Result(emptyList(), "弹幕为空")
         }.getOrDefault(Result(emptyList(), "匹配失败"))
     }
 
@@ -49,9 +54,28 @@ object BilibiliDanmaku {
         .replace(Regex("\\d{3,4}[PpKk]|高清|蓝光|国语|粤语|4K|1080P|720P", RegexOption.IGNORE_CASE), "")
         .trim()
 
-    /** wbi 签名搜索：返回第一个结果的 bvid */
-    private fun searchVideo(keyword: String): String? {
-        val wbi = wbiKey() ?: return null
+    // 噪音标题：OST/主题曲/花絮/reaction 等非正片内容，匹配到也只会是空弹幕
+    private val NOISE = Regex(
+        "OST|主题曲|插曲|原声带|配乐|reaction|直播|预告|花絮|解说|饭制|路透|采访|报道|混剪|速看|MV",
+        RegexOption.IGNORE_CASE
+    )
+
+    // 正片特征：标题带集数（第X集/X集全/全集/更新至X集）或时长超过 20 分钟
+    private val EP_MARK = Regex("第\\s*\\d+\\s*[集话期]|\\d+\\s*集\\s*全|全集|合集|更新至\\s*\\d+|EP\\s*\\d+", RegexOption.IGNORE_CASE)
+
+    /** "1:02:03"/"302:58" → 秒 */
+    private fun durationSec(d: String): Long = runCatching {
+        val parts = d.split(":").map { it.toLong() }
+        when (parts.size) {
+            3 -> parts[0] * 3600 + parts[1] * 60 + parts[2]
+            2 -> parts[0] * 60 + parts[1]
+            else -> 0L
+        }
+    }.getOrDefault(0L)
+
+    /** wbi 签名搜索：返回按「正片优先」排序的候选 bvid 列表（最多 3 个） */
+    private fun searchCandidates(keyword: String): List<String> {
+        val wbi = wbiKey() ?: return emptyList()
         val wts = System.currentTimeMillis() / 1000
         val params = sortedMapOf(
             "keyword" to keyword,
@@ -61,16 +85,24 @@ object BilibiliDanmaku {
         val query = params.entries.joinToString("&") { "${it.key}=${urlEncode(it.value)}" }
         val wRid = md5(query + wbi)
         val url = "https://api.bilibili.com/x/web-interface/search/type?$query&w_rid=$wRid"
-        val body = httpText(url) ?: return null
-        val obj = runCatching { com.google.gson.JsonParser.parseString(body).asJsonObject }.getOrNull() ?: return null
-        if (runCatching { obj.get("code")?.asInt }.getOrNull() != 0) return null
-        val result = obj.getAsJsonObject("data")?.getAsJsonArray("result") ?: return null
-        for (el in result) {
+        val body = httpText(url) ?: return emptyList()
+        val obj = runCatching { com.google.gson.JsonParser.parseString(body).asJsonObject }.getOrNull() ?: return emptyList()
+        if (runCatching { obj.get("code")?.asInt }.getOrNull() != 0) return emptyList()
+        val result = obj.getAsJsonObject("data")?.getAsJsonArray("result") ?: return emptyList()
+        data class Cand(val bvid: String, val score: Int)
+        val cands = mutableListOf<Cand>()
+        for ((idx, el) in result.withIndex()) {
             val o = el.asJsonObject
             val bvid = o.get("bvid")?.takeIf { !it.isJsonNull }?.asString ?: continue
-            if (bvid.isNotBlank()) return bvid
+            if (bvid.isBlank()) continue
+            val title = o.get("title")?.takeIf { !it.isJsonNull }?.asString.orEmpty()
+            if (NOISE.containsMatchIn(title)) continue
+            var score = -idx  // 原始顺序微调：同分时靠前的优先
+            if (EP_MARK.containsMatchIn(title)) score += 40
+            if (durationSec(o.get("duration")?.takeIf { !it.isJsonNull }?.asString.orEmpty()) >= 1200) score += 30
+            cands.add(Cand(bvid, score))
         }
-        return null
+        return cands.sortedByDescending { it.score }.take(3).map { it.bvid }
     }
 
     /** view 接口拿 cid：优先匹配集数对应的分 P，否则第 1 P */
