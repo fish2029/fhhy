@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit
 data class TmdbItem(
     val title: String,
     val poster: String,
+    val backdrop: String,
     val rating: String,
     val year: String,
     val overview: String,
@@ -28,6 +29,7 @@ object TmdbClient {
         .build()
 
     const val IMG_BASE = "https://image.tmdb.org/t/p/w500"
+    const val BACKDROP_BASE = "https://image.tmdb.org/t/p/w780"
 
     /** 阻塞调用，请在 IO 线程执行；page 从 1 开始 */
     fun trending(kind: String, key: String, page: Int, language: String = "zh-CN"): List<TmdbItem> {
@@ -75,9 +77,11 @@ object TmdbClient {
                 else -> o.optString("release_date")
             }
             val rating = o.optDouble("vote_average", 0.0)
+            val backdropPath = o.optString("backdrop_path").orEmpty()
             TmdbItem(
                 title = title,
                 poster = IMG_BASE + posterPath,
+                backdrop = if (backdropPath.isBlank()) "" else BACKDROP_BASE + backdropPath,
                 rating = if (rating > 0) String.format("%.1f", rating) else "",
                 year = if (date.length >= 4) date.take(4) else "",
                 overview = o.optString("overview").orEmpty(),

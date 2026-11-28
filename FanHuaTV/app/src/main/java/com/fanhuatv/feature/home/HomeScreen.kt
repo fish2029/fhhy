@@ -32,6 +32,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.fanhuatv.core.model.AppConfig
@@ -124,12 +125,34 @@ fun HomeScreen(
             is Resource.Success -> {
                 // 「我的-导航首页」设置：大图横幅 / 海报密度 / 继续观看
                 val uiSettings by appVm.uiSettings.collectAsStateWithLifecycle()
+                // TMDB 模式：填了 Key 后，轮播大图和影片格子都走 TMDB 热门榜
+                val settingsVm: com.fanhuatv.feature.settings.SettingsViewModel = hiltViewModel()
+                val tmdbKey by settingsVm.tmdbKey.collectAsStateWithLifecycle()
+                val tmdbItems = if (tmdbKey.isNotBlank()) rememberTmdbTrending(tmdbKey) else emptyList()
+                var tmdbMatching by remember { mutableStateOf(false) }
+                val tmdbMatch: (String) -> Unit = { title ->
+                    if (!tmdbMatching) {
+                        tmdbMatching = true
+                        appVm.matchLocalSource(title) { found ->
+                            tmdbMatching = false
+                            if (found != null) {
+                                com.fanhuatv.player.LivePlayBus.pendingDetail = found
+                                navController.navigate(Routes.detail(found.id.ifBlank { found.title }))
+                            }
+                        }
+                    }
+                }
                 Column(modifier = Modifier.fillMaxSize()) {
                     Spacer(Modifier.height(72.dp)) // 给悬浮搜索栏留位
 
-                    // 轮播 Banner（可在「我的-导航首页-大图横幅」关闭）
+                    // 轮播 Banner：TMDB 模式走热门榜横图，否则用订阅源配置（可在「我的-导航首页-大图横幅」关闭）
                     val banners = config?.banners.orEmpty()
-                    if (uiSettings.homeBanner != false && banners.isNotEmpty()) {
+                    if (tmdbKey.isNotBlank()) {
+                        if (tmdbItems.isNotEmpty()) {
+                            TmdbBanner(tmdbItems.take(5)) { tmdbMatch(it) }
+                            Spacer(Modifier.height(8.dp))
+                        }
+                    } else if (uiSettings.homeBanner != false && banners.isNotEmpty()) {
                         BannerCarousel(banners) { vodId ->
                             if (vodId.isNotBlank()) navController.navigate(Routes.detail(vodId))
                         }
@@ -163,7 +186,7 @@ fun HomeScreen(
                     }
 
                     val homeItems = config?.homeItems.orEmpty()
-                    if (homeItems.isEmpty() && config?.categories?.isNotEmpty() == true) {
+                    if (tmdbKey.isBlank() && homeItems.isEmpty() && config?.categories?.isNotEmpty() == true) {
                         Text(
                             "当前脚本未提供推荐影片，可点上方分类查看",
                             color = com.fanhuatv.ui.theme.TextSecondary,
@@ -172,6 +195,20 @@ fun HomeScreen(
                         )
                     }
                     com.fanhuatv.player.LivePlayBus.rememberItems(homeItems)
+                    // TMDB 模式：格子走热门榜；否则用订阅源推荐
+                    if (tmdbKey.isNotBlank()) {
+                        BoxWithConstraints(modifier = Modifier.weight(1f).clipToBounds()) {
+                            TmdbGrid(tmdbItems, tmdbMatching) { tmdbMatch(it) }
+                            if (tmdbMatching) {
+                                Box(
+                                    Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)),
+                                    Alignment.Center
+                                ) {
+                                    Text("匹配片源中…", color = Color.White, fontSize = 15.sp)
+                                }
+                            }
+                        }
+                    } else {
                     // 网格占满首页剩余空间：两排卡片 + 行间距刚好占满，
                     // 卡片高度按剩余空间反算——不管轮播图开关、不管几列，
                     // 打开首页两排都完整显示，不出头、不被切
@@ -208,6 +245,7 @@ fun HomeScreen(
                             )
                         }
                         }
+                    }
                     }
                 }
             }
