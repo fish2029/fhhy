@@ -177,15 +177,15 @@ fun HomeScreen(
                     // 打开首页两排都完整显示，不出头、不被切
                     val gridColumns = (uiSettings.posterColumns ?: 3).coerceIn(2, 4)
                     BoxWithConstraints(modifier = Modifier.weight(1f).clipToBounds()) {
-                        // 单张卡片完整高度 = (剩余高度 - 行间距10dp - 上下contentPadding8dp) / 2
-                        val cardHeight = (maxHeight - 10.dp - 8.dp) / 2
+                        // 单张卡片完整高度 = (剩余高度 - 行间距10dp - 上下contentPadding12dp) / 2
+                        val cardHeight = (maxHeight - 10.dp - 12.dp) / 2
                         // 封面高度 = 卡片高度 - 标题区（12sp 单行文字 + 5dp 上边距 + 余量）
                         val posterHeight = cardHeight - 24.dp
                         LazyVerticalGrid(
                             // 选几列显示几列（自适应算列在窄屏会少一列，已回退）
                             columns = GridCells.Fixed(gridColumns),
-                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier.fillMaxSize()
                         ) {
@@ -575,7 +575,7 @@ internal fun ContinueWatchingRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(132.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(RoundedCornerShape(14.dp))
                     ) {
                         AsyncImage(
                             model = history.cover,

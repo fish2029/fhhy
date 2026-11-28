@@ -48,7 +48,7 @@ fun SubTopBar(title: String, onBack: () -> Unit, actions: @Composable RowScope.(
 fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, showExtra: Boolean = true, ratio: Float = 2f / 3f, posterHeight: androidx.compose.ui.unit.Dp? = null) {
     Column(modifier = modifier.clickable(onClick = onClick)) {
         Box(modifier = (posterHeight?.let { Modifier.fillMaxWidth().height(it) }
-                ?: Modifier.fillMaxWidth().aspectRatio(ratio)).clip(RoundedCornerShape(8.dp))) {
+                ?: Modifier.fillMaxWidth().aspectRatio(ratio)).clip(RoundedCornerShape(14.dp))) {
             AsyncImage(
                 model = item.coverUrl,
                 contentDescription = item.displayTitle,
@@ -60,7 +60,7 @@ fun VodCard(item: VodItem, onClick: () -> Unit, modifier: Modifier = Modifier, s
             if (showExtra && item.displayRating.isNotBlank()) {
                 Surface(
                     color = Color.Black.copy(alpha = 0.7f),
-                    shape = RoundedCornerShape(bottomEnd = 8.dp),
+                    shape = RoundedCornerShape(bottomEnd = 14.dp),
                     modifier = Modifier.align(Alignment.TopStart)
                 ) {
                     Row(
