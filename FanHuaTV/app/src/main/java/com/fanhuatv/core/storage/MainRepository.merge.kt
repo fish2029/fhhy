@@ -1158,6 +1158,7 @@ class MainRepository @Inject constructor(
 
     suspend fun isFavorite(vodId: String): Boolean = favoriteDao.find(vodId) != null
 
+    suspend fun deleteHistory(vodId: String) = historyDao.deleteByVodId(vodId)
     suspend fun clearHistory() = historyDao.clear()
     suspend fun clearFavorites() = favoriteDao.clear()
     suspend fun clearSearchHistory() = searchDao.clear()

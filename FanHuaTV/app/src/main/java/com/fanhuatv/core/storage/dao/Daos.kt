@@ -24,6 +24,9 @@ interface HistoryDao {
     @Query("UPDATE history SET progress = :progress, duration = :duration, episode = :episode, episodeId = :episodeId, updatedAt = :time WHERE vodId = :vodId")
     suspend fun updateProgress(vodId: String, progress: Long, duration: Long, episode: String, episodeId: String, time: Long)
 
+    @Query("DELETE FROM history WHERE vodId = :vodId")
+    suspend fun deleteByVodId(vodId: String)
+
     @Query("DELETE FROM history")
     suspend fun clear()
 }
