@@ -49,6 +49,7 @@ fun PosterWallScreen(
     vm: SettingsViewModel = hiltViewModel()
 ) {
     val tmdbKey by vm.tmdbKey.collectAsState()
+    val uiSettings by appVm.uiSettings.collectAsState()
 
     Scaffold(
         topBar = { SubTopBar("影视海报墙", onBack = { navController.popBackStack() }) }
@@ -57,7 +58,7 @@ fun PosterWallScreen(
             if (tmdbKey.isBlank()) {
                 KeyGuide(vm, tmdbKey)
             } else {
-                PosterWallContent(tmdbKey, appVm, navController)
+                PosterWallContent(tmdbKey, appVm, navController, (uiSettings.posterColumns ?: 3).coerceIn(2, 4), uiSettings.posterInfo != "title")
             }
         }
     }
@@ -104,7 +105,7 @@ private fun KeyGuide(vm: SettingsViewModel, currentKey: String) {
 
 /** 有 Key：顶部 tab（热门电影/热门剧集）+ 海报网格 */
 @Composable
-private fun PosterWallContent(key: String, appVm: AppViewModel, navController: NavController) {
+private fun PosterWallContent(key: String, appVm: AppViewModel, navController: NavController, gridColumns: Int, showExtra: Boolean) {
     var kind by remember { mutableStateOf("movie") }
     val gridState = rememberLazyGridState()
 
@@ -130,17 +131,19 @@ private fun PosterWallContent(key: String, appVm: AppViewModel, navController: N
                 }
             }
         }
-        TmdbPosterGrid(key, kind, appVm, navController)
+        TmdbPosterGrid(key, kind, appVm, navController, gridColumns, showExtra)
     }
 }
 
-/** TMDB 海报网格：3 列、2:3 海报、底部渐变压片名 + 评分，滚到底自动翻页 */
+/** TMDB 海报网格：列数与信息显示跟随「我的」设置，2:3 海报、底部渐变压片名 + 评分，滚到底自动翻页 */
 @Composable
 private fun TmdbPosterGrid(
     key: String,
     kind: String,
     appVm: AppViewModel,
-    navController: NavController
+    navController: NavController,
+    gridColumns: Int,
+    showExtra: Boolean
 ) {
     val scope = rememberCoroutineScope()
     var items by remember(kind) { mutableStateOf<List<TmdbItem>>(emptyList()) }
@@ -189,7 +192,7 @@ private fun TmdbPosterGrid(
         } else {
             LazyVerticalGrid(
                 state = gridState,
-                columns = GridCells.Fixed(3),
+                columns = GridCells.Fixed(gridColumns),
                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -248,7 +251,7 @@ private fun TmdbPosterGrid(
                                     .padding(8.dp)
                             )
                             // 评分角标
-                            if (item.rating.isNotBlank()) {
+                            if (showExtra && item.rating.isNotBlank()) {
                                 Text(
                                     "★${item.rating}",
                                     color = Color(0xFFFFC107),
@@ -261,7 +264,7 @@ private fun TmdbPosterGrid(
                             }
                         }
                         // 年份行
-                        if (item.year.isNotBlank()) {
+                        if (showExtra && item.year.isNotBlank()) {
                             Text(
                                 item.year,
                                 color = TextSecondary,

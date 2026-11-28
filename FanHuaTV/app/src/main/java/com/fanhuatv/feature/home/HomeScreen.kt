@@ -145,18 +145,20 @@ fun HomeScreen(
                 Column(modifier = Modifier.fillMaxSize()) {
                     Spacer(Modifier.height(72.dp)) // 给悬浮搜索栏留位
 
-                    // 轮播 Banner：TMDB 模式走热门榜横图，否则用订阅源配置（可在「我的-导航首页-大图横幅」关闭）
+                    // 轮播 Banner：TMDB 模式走热门榜横图，否则用订阅源配置（都受「我的-导航首页-大图横幅」开关控制）
                     val banners = config?.banners.orEmpty()
-                    if (tmdbKey.isNotBlank()) {
-                        if (tmdbItems.isNotEmpty()) {
-                            TmdbBanner(tmdbItems.take(5)) { tmdbMatch(it) }
+                    if (uiSettings.homeBanner != false) {
+                        if (tmdbKey.isNotBlank()) {
+                            if (tmdbItems.isNotEmpty()) {
+                                TmdbBanner(tmdbItems.take(5)) { tmdbMatch(it) }
+                                Spacer(Modifier.height(8.dp))
+                            }
+                        } else if (banners.isNotEmpty()) {
+                            BannerCarousel(banners) { vodId ->
+                                if (vodId.isNotBlank()) navController.navigate(Routes.detail(vodId))
+                            }
                             Spacer(Modifier.height(8.dp))
                         }
-                    } else if (uiSettings.homeBanner != false && banners.isNotEmpty()) {
-                        BannerCarousel(banners) { vodId ->
-                            if (vodId.isNotBlank()) navController.navigate(Routes.detail(vodId))
-                        }
-                        Spacer(Modifier.height(8.dp))
                     }
 
                     // 分类栏：来自 homeContent 的 class / ?ac=list。
@@ -198,7 +200,8 @@ fun HomeScreen(
                     // TMDB 模式：格子走热门榜；否则用订阅源推荐
                     if (tmdbKey.isNotBlank()) {
                         BoxWithConstraints(modifier = Modifier.weight(1f).clipToBounds()) {
-                            TmdbGrid(tmdbItems, tmdbMatching) { tmdbMatch(it) }
+                            val gridColumns = (uiSettings.posterColumns ?: 3).coerceIn(2, 4)
+                            TmdbGrid(tmdbItems, tmdbMatching, gridColumns, uiSettings.posterInfo != "title") { tmdbMatch(it) }
                             if (tmdbMatching) {
                                 Box(
                                     Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)),

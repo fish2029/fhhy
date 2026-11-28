@@ -133,11 +133,13 @@ internal fun TmdbBanner(
     }
 }
 
-/** TMDB 影片格子：3 列海报 + 评分角标 + 年份，点整卡匹配片源 */
+/** TMDB 影片格子：列数和下方信息跟随「我的-导航首页」设置，点整卡匹配片源 */
 @Composable
 internal fun TmdbGrid(
     items: List<TmdbItem>,
     matching: Boolean,
+    gridColumns: Int,
+    showExtra: Boolean,
     onClick: (String) -> Unit
 ) {
     if (items.isEmpty()) {
@@ -147,7 +149,7 @@ internal fun TmdbGrid(
         return
     }
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+        columns = GridCells.Fixed(gridColumns),
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
