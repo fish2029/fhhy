@@ -26,7 +26,9 @@ import com.fanhuatv.player.LivePlayBus
 import com.fanhuatv.ui.theme.Accent
 import com.fanhuatv.ui.theme.TextPrimary
 import com.fanhuatv.ui.theme.TextSecondary
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * 观影海报墙：观看历史铺成满屏海报，点海报直接续播，长按删除记录。
@@ -71,6 +73,19 @@ fun PosterWallScreen(
                 val fraction = remember(h.uid, h.progress, h.duration) {
                     if (h.duration > 0) (h.progress.toFloat() / h.duration).coerceIn(0f, 1f) else null
                 }
+                // 影视资料匹配：拿剧名搜高清海报与资料，搜不到保持原样
+                var tm by remember(h.title) { mutableStateOf<TmShow?>(null) }
+                LaunchedEffect(h.title) {
+                    tm = withContext(Dispatchers.IO) { TvmazeClient.search(h.title) }
+                }
+                val show = tm
+                val poster = show?.poster?.takeIf { it.isNotBlank() } ?: h.cover
+                val infoLine = show?.let {
+                    listOf(it.originalName.takeIf { n -> n.isNotBlank() && n != h.title },
+                        it.year.takeIf { y -> y.isNotBlank() },
+                        it.rating.takeIf { r -> r.isNotBlank() }?.let { r -> "TMaze $r" })
+                        .filterNotNull().joinToString(" · ")
+                }.orEmpty()
                 Column(
                     modifier = Modifier
                         .clickableNoRipple(
@@ -114,7 +129,7 @@ fun PosterWallScreen(
                             .clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
                     ) {
                         AsyncImage(
-                            model = h.cover,
+                            model = poster,
                             contentDescription = h.title,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize(),
@@ -147,7 +162,15 @@ fun PosterWallScreen(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if (h.episode.isNotBlank()) {
+                    if (infoLine.isNotBlank()) {
+                        Text(
+                            infoLine,
+                            color = TextSecondary,
+                            fontSize = 10.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    } else if (h.episode.isNotBlank()) {
                         Text(
                             h.episode,
                             color = TextSecondary,
