@@ -31,6 +31,29 @@ object TmdbClient {
     const val IMG_BASE = "https://image.tmdb.org/t/p/w500"
     const val BACKDROP_BASE = "https://image.tmdb.org/t/p/w780"
 
+    /** 热门榜内存缓存：进首页秒显上次结果，网络抖动时不闪没 */
+    private val trendingCache = mutableMapOf<String, List<TmdbItem>>()
+    private val trendingCacheTime = mutableMapOf<String, Long>()
+    private const val CACHE_TTL_MS = 10 * 60 * 1000L
+
+    /** 只读缓存（无论新旧），用于进首页先显示上次内容 */
+    fun cachedTrending(kind: String): List<TmdbItem> = trendingCache[kind].orEmpty()
+
+    /** 带缓存的热门榜：缓存新鲜直接用；否则联网拉取，失败时退回旧缓存，不让列表突然变空 */
+    fun trendingCached(kind: String, key: String, page: Int, language: String = "zh-CN"): List<TmdbItem> {
+        val cacheKey = "$kind|$page"
+        val cached = trendingCache[cacheKey]
+        val now = System.currentTimeMillis()
+        if (cached != null && now - (trendingCacheTime[cacheKey] ?: 0L) < CACHE_TTL_MS) return cached
+        val fresh = trending(kind, key, page, language)
+        if (fresh.isNotEmpty()) {
+            trendingCache[cacheKey] = fresh
+            trendingCacheTime[cacheKey] = now
+            return fresh
+        }
+        return cached.orEmpty()
+    }
+
     /** 阻塞调用，请在 IO 线程执行；page 从 1 开始 */
     fun trending(kind: String, key: String, page: Int, language: String = "zh-CN"): List<TmdbItem> {
         if (key.isBlank()) return emptyList()

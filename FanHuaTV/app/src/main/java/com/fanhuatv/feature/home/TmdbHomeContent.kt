@@ -32,14 +32,25 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** 首页 TMDB 数据：拉两页热门电影，前 5 条有横图的做轮播，其余进格子 */
+/** 首页 TMDB 数据：拉两页热门电影，前 5 条有横图的做轮播；带缓存，网络抖动时不闪没 */
 @Composable
 internal fun rememberTmdbTrending(key: String): List<TmdbItem> {
-    var items by remember { mutableStateOf<List<TmdbItem>>(emptyList()) }
+    // 先用上次缓存秒显，再后台刷新；拉取失败保留旧内容，不把轮播清空
+    var items by remember { mutableStateOf(TmdbClient.cachedTrending("movie")) }
     LaunchedEffect(key) {
-        items = withContext(Dispatchers.IO) {
-            TmdbClient.trending("movie", key, 1) + TmdbClient.trending("movie", key, 2)
+        val fresh = withContext(Dispatchers.IO) {
+            TmdbClient.trendingCached("movie", key, 1) + TmdbClient.trendingCached("movie", key, 2)
         }.distinctBy { it.title }
+        if (fresh.isNotEmpty()) {
+            items = fresh
+        } else if (items.isEmpty()) {
+            // 一次都没拉到过：隔几秒重试一次，仍失败就等下次进首页再试
+            delay(4000)
+            val retry = withContext(Dispatchers.IO) {
+                TmdbClient.trendingCached("movie", key, 1) + TmdbClient.trendingCached("movie", key, 2)
+            }.distinctBy { it.title }
+            if (retry.isNotEmpty()) items = retry
+        }
     }
     return items
 }
