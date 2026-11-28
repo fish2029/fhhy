@@ -31,6 +31,10 @@ class AppViewModel @Inject constructor(
     private val _config = MutableStateFlow<AppConfig?>(null)
     val config: StateFlow<AppConfig?> = _config.asStateFlow()
 
+    /** 影视海报墙用：按分类 id 分页拉影片，代理仓库的同名能力 */
+    suspend fun loadCategoryPage(tid: String, pg: String, scriptId: String): Resource<List<com.fanhuatv.core.model.VodItem>> =
+        repository.loadCategory(tid, pg, scriptId)
+
     private val _status = MutableStateFlow<Resource<AppConfig>>(Resource.Loading)
     val status: StateFlow<Resource<AppConfig>> = _status.asStateFlow()
 

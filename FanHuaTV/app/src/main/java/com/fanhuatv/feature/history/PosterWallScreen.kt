@@ -99,7 +99,7 @@ private fun CategoryChips(
                 Modifier
                     .clip(RoundedCornerShape(16.dp))
                     .background(if (picked) Accent else BgCard)
-                    .clickableNoRipple { onSelect(c) }
+                    .clickableNoRipple(onClick = { onSelect(c) })
                     .padding(horizontal = 14.dp, vertical = 7.dp)
             ) {
                 Text(
@@ -127,7 +127,7 @@ private fun PosterGrid(
     // 首屏 + 换分类：从第 1 页拉
     LaunchedEffect(category.key, category.siteKey) {
         loading = true
-        val r = appVm.repository.loadCategory(category.key, "1", category.siteKey.removePrefix("py_"))
+        val r = appVm.loadCategoryPage(category.key, "1", category.siteKey.removePrefix("py_"))
         if (r is Resource.Success) {
             items = r.data
             endReached = r.data.isEmpty()
@@ -142,7 +142,7 @@ private fun PosterGrid(
         if (items.isNotEmpty() && last >= items.size - 6) {
             loading = true
             val next = page + 1
-            val r = appVm.repository.loadCategory(category.key, next.toString(), category.siteKey.removePrefix("py_"))
+            val r = appVm.loadCategoryPage(category.key, next.toString(), category.siteKey.removePrefix("py_"))
             if (r is Resource.Success) {
                 val fresh = r.data.filter { n -> items.none { it.id == n.id && it.title == n.title } }
                 if (fresh.isEmpty()) endReached = true else { items = items + fresh; page = next }
@@ -173,11 +173,11 @@ private fun PosterGrid(
     ) {
         items(items, key = { it.id + it.title }) { item ->
             Column(
-                modifier = Modifier.clickableNoRipple {
+                modifier = Modifier.clickableNoRipple(onClick = {
                     LivePlayBus.rememberItems(listOf(item))
                     LivePlayBus.pendingDetail = item
                     navController.navigate(Routes.detail(item.id.ifBlank { item.title }))
-                }
+                })
             ) {
                 Box(
                     modifier = Modifier
