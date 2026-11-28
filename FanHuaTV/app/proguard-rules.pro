@@ -37,6 +37,11 @@
 -keep public class com.chaquo.python.** { *; }
 -dontwarn com.chaquo.python.**
 
+# ---------- 二维码（zxing）：宿主代码不直接引用，但 jar 蜘蛛按宿主类路径
+# 加载（UC/夸克扫码登录生成二维码），不加 keep 会被 R8 整体裁掉 ----------
+-keep class com.google.zxing.** { *; }
+-dontwarn com.google.zxing.**
+
 # ---------- 安卓标准反射面 ----------
 -keep class * implements android.os.Parcelable {
     public static final android.os.Parcelable$Creator *;

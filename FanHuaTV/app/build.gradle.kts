@@ -107,6 +107,8 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.gson)
+    // jar 蜘蛛按宿主类路径找 zxing（UC/夸克扫码登录生成二维码用），壳必须自带
+    implementation("com.google.zxing:core:3.5.3")
     implementation(libs.coil.compose)
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.exoplayer.hls)
